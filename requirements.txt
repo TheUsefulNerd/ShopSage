@@ -1,0 +1,32 @@
+# Pinned for consistency across the team — do NOT loosen these without discussing in standup.
+# If you need a new package, add it here with a pin (check `pip index versions <pkg>`) and mention it to the team.
+# Regenerate a working env with: pip install -r requirements.txt
+
+# --- Week 1: Foundations, RAG & UI ---
+langchain==1.3.13
+langchain-groq==1.1.3
+groq==0.37.1
+gradio==6.20.0
+fastapi==0.139.0
+uvicorn==0.51.0
+pandas==2.3.3          # pinned to last 2.x — pandas 3.0 is out but is a breaking major version, avoid for now
+supabase==2.31.0
+python-dotenv==1.2.2
+
+# Vector store — uncomment whichever is chosen (see docs/team.md open decision)
+# chromadb==1.5.9
+# qdrant-client==1.18.0
+
+# Embedding model client — add once chosen (see docs/team.md open decision)
+
+# --- Week 2: Tools, MCP & Memory ---
+# mcp==1.28.1
+
+# --- Week 3: Guardrails & Caching ---
+# redis==8.0.1
+
+# --- Week 4: Observability & Evals ---
+# ragas==0.4.3
+# langsmith==0.10.2
+# opentelemetry-api==1.43.0
+# opentelemetry-sdk==1.43.0
