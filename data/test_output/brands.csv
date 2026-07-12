@@ -1,0 +1,365 @@
+brand_id,brand_name,tier,categories
+BR001,REI Co-op,Mid,Outdoor|Camping
+BR002,Patagonia,Premium,Outdoor
+BR003,The North Face,Value,Outdoor
+BR004,Columbia,Mid,Outdoor|Hiking
+BR005,Coleman,Premium,Outdoor|Camping
+BR006,YETI,Value,Outdoor|Camping
+BR007,Osprey,Mid,Outdoor|Hiking
+BR008,Black Diamond,Premium,Outdoor|Hiking
+BR009,Marmot,Value,Outdoor
+BR010,Kelty,Mid,Outdoor
+BR011,Wildcraft,Premium,Outdoor|Camping|Hiking
+BR012,Decathlon,Value,Outdoor|Fitness|Sports|Running|Hiking|Yoga
+BR013,Quechua,Mid,Outdoor
+BR014,Nike,Premium,Clothing|Fitness|Sports|Footwear|Running|Swimming
+BR015,Adidas,Value,Clothing|Fitness|Sports|Footwear
+BR016,Levi's,Mid,Clothing
+BR017,Gap,Premium,Clothing
+BR018,H&M,Value,Clothing
+BR019,Zara,Mid,Clothing
+BR020,Uniqlo,Premium,Clothing
+BR021,Ralph Lauren,Value,Clothing
+BR022,Tommy Hilfiger,Mid,Clothing
+BR023,Calvin Klein,Premium,Clothing|Fragrance
+BR024,Fabindia,Value,Clothing|Home|Decor
+BR025,Allen Solly,Mid,Clothing
+BR026,Van Heusen,Premium,Clothing
+BR027,Peter England,Value,Clothing
+BR028,Biba,Mid,Clothing
+BR029,Raymond,Premium,Clothing
+BR030,W for Woman,Value,Clothing
+BR031,Manyavar,Mid,Clothing
+BR032,Jockey,Premium,Clothing
+BR033,Spykar,Value,Clothing
+BR034,Pantaloons,Mid,Clothing
+BR035,Max Fashion,Premium,Clothing
+BR036,Killer Jeans,Value,Clothing
+BR037,Being Human,Mid,Clothing
+BR038,Sony,Premium,Electronics|Audio
+BR039,Samsung,Value,Electronics|Appliances|Wearables|Gadgets|Monitors
+BR040,LG,Mid,Electronics|Appliances|Monitors
+BR041,Panasonic,Premium,Electronics
+BR042,Philips,Value,Electronics
+BR043,JBL,Mid,Electronics|Audio
+BR044,Bose,Premium,Electronics|Audio
+BR045,Sennheiser,Value,Electronics|Audio
+BR046,Micromax,Mid,Electronics|Gadgets
+BR047,Lava,Premium,Electronics
+BR048,boAt,Value,Electronics|Audio|Wearables|Gadgets
+BR049,Noise,Mid,Electronics|Audio|Wearables
+BR050,Karbonn,Premium,Electronics
+BR051,iBall,Value,Electronics|Computing|Peripherals
+BR052,Intex,Mid,Electronics
+BR053,IKEA,Premium,Home|Storage
+BR054,Crate & Barrel,Value,Home
+BR055,West Elm,Mid,Home|Decor
+BR056,Williams Sonoma,Premium,Home
+BR057,Pottery Barn,Value,Home|Decor
+BR058,Wayfair,Mid,Home|Decor
+BR059,Godrej Interio,Premium,Home
+BR060,Nilkamal,Value,Home|Storage
+BR061,Urban Ladder,Mid,Home|Decor
+BR062,Pepperfry,Premium,Home|Decor
+BR063,Durian,Value,Home
+BR064,Under Armour,Mid,Fitness|Sports
+BR065,Reebok,Premium,Fitness|Footwear
+BR066,Peloton,Value,Fitness
+BR067,Bowflex,Mid,Fitness
+BR068,NordicTrack,Premium,Fitness
+BR069,Cult.fit,Value,Fitness
+BR070,Fisher-Price,Mid,Kids|Toys|Baby
+BR071,LEGO,Premium,Kids|Toys
+BR072,Carter's,Value,Kids
+BR073,OshKosh B'gosh,Mid,Kids
+BR074,Gerber,Premium,Kids|Baby
+BR075,Graco,Value,Kids|Baby
+BR076,Chicco,Mid,Kids|Baby
+BR077,Funskool,Premium,Kids|Toys
+BR078,Mothercare,Value,Kids|Baby
+BR079,Toyzone,Mid,Kids|Toys
+BR080,L'Oréal,Premium,Beauty
+BR081,Maybelline,Value,Beauty
+BR082,MAC Cosmetics,Mid,Beauty
+BR083,Estée Lauder,Premium,Beauty
+BR084,NARS,Value,Beauty
+BR085,Neutrogena,Mid,Beauty|Skincare
+BR086,Clinique,Premium,Beauty
+BR087,Lakmé,Value,Beauty
+BR088,Nykaa,Mid,Beauty
+BR089,Biotique,Premium,Beauty|Skincare
+BR090,VLCC,Value,Beauty
+BR091,Forest Essentials,Mid,Beauty
+BR092,Lotus Herbals,Premium,Beauty|Skincare
+BR093,Colorbar,Value,Beauty
+BR094,Sugar Cosmetics,Mid,Beauty
+BR095,Plum,Premium,Beauty|Skincare
+BR096,Wilson,Value,Sports
+BR097,Spalding,Mid,Sports
+BR098,Rawlings,Premium,Sports
+BR099,Puma,Value,Sports|Footwear
+BR100,SG,Mid,Sports
+BR101,Cosco,Premium,Sports
+BR102,Nivia,Value,Sports
+BR103,Vector X,Mid,Sports
+BR104,Kraft,Premium,Grocery
+BR105,General Mills,Value,Grocery
+BR106,Nestlé,Mid,Grocery
+BR107,Kellogg's,Premium,Grocery
+BR108,Heinz,Value,Grocery
+BR109,Campbell's,Mid,Grocery
+BR110,Britannia,Premium,Grocery
+BR111,Parle,Value,Grocery
+BR112,Amul,Mid,Grocery
+BR113,Haldiram's,Premium,Grocery
+BR114,MDH,Value,Grocery
+BR115,ITC,Mid,Grocery
+BR116,Tata Sampann,Premium,Grocery
+BR117,Everest,Value,Grocery
+BR118,MTR,Mid,Grocery
+BR119,Hasbro,Premium,Toys
+BR120,Mattel,Value,Toys
+BR121,Playmobil,Mid,Toys
+BR122,Nerf,Premium,Toys
+BR123,Staples,Value,Office
+BR124,HP,Mid,Office|Computing
+BR125,Canon,Premium,Office
+BR126,Epson,Value,Office
+BR127,Post-it,Mid,Office|Stationery
+BR128,Sharpie,Premium,Office|Stationery
+BR129,Pilot,Value,Office|Stationery
+BR130,Camlin,Mid,Office|Stationery
+BR131,Cello,Premium,Office|Storage|Stationery
+BR132,Luxor,Value,Office
+BR133,Reynolds,Mid,Office|Stationery
+BR134,Purina,Premium,Pets
+BR135,Pedigree,Value,Pets
+BR136,Blue Buffalo,Mid,Pets
+BR137,KONG,Premium,Pets
+BR138,PetSafe,Value,Pets
+BR139,Royal Canin,Mid,Pets
+BR140,Drools,Premium,Pets
+BR141,Heads Up For Tails,Value,Pets
+BR142,Michelin,Mid,Automotive
+BR143,Bosch,Premium,Automotive|Appliances
+BR144,Bridgestone,Value,Automotive
+BR145,Goodyear,Mid,Automotive
+BR146,Castrol,Premium,Automotive
+BR147,Mobil 1,Value,Automotive
+BR148,MRF,Mid,Automotive
+BR149,Apollo Tyres,Premium,Automotive
+BR150,Bajaj Auto,Value,Automotive
+BR151,TVS,Mid,Automotive
+BR152,Hero MotoCorp,Premium,Automotive
+BR153,Mahindra,Value,Automotive
+BR154,JK Tyre,Mid,Automotive
+BR155,Scotts,Premium,Garden
+BR156,Miracle-Gro,Value,Garden
+BR157,Fiskars,Mid,Garden
+BR158,Black+Decker,Premium,Garden
+BR159,Husqvarna,Value,Garden
+BR160,Ugaoo,Mid,Garden
+BR161,Johnson & Johnson,Premium,Health
+BR162,Bayer,Value,Health
+BR163,Tylenol,Mid,Health
+BR164,Advil,Premium,Health
+BR165,Centrum,Value,Health
+BR166,Himalaya,Mid,Health|Baby|Skincare
+BR167,Dabur,Premium,Health|Haircare
+BR168,Patanjali,Value,Health|Skincare|Haircare|Supplements
+BR169,Cipla,Mid,Health
+BR170,Emami,Premium,Health
+BR171,Penguin Random House,Value,Books
+BR172,HarperCollins,Mid,Books
+BR173,Scholastic,Premium,Books
+BR174,Simon & Schuster,Value,Books
+BR175,Macmillan,Mid,Books
+BR176,Rupa Publications,Premium,Books
+BR177,Amar Chitra Katha,Value,Books
+BR178,New Balance,Mid,Footwear|Running
+BR179,Vans,Premium,Footwear
+BR180,Converse,Value,Footwear
+BR181,Skechers,Mid,Footwear
+BR182,Bata,Premium,Footwear
+BR183,Liberty,Value,Footwear
+BR184,Woodland,Mid,Footwear
+BR185,Relaxo,Premium,Footwear
+BR186,Metro Shoes,Value,Footwear
+BR187,Sparx,Mid,Footwear
+BR188,Campus Shoes,Premium,Footwear
+BR189,Paragon,Value,Footwear
+BR190,Fossil,Mid,Accessories|Wearables
+BR191,Ray-Ban,Premium,Accessories
+BR192,Michael Kors,Value,Accessories
+BR193,Coach,Mid,Accessories
+BR194,Kate Spade,Premium,Accessories
+BR195,Titan,Value,Accessories|Wearables
+BR196,Fastrack,Mid,Accessories
+BR197,Da Milano,Premium,Accessories
+BR198,Hidesign,Value,Accessories
+BR199,Samsonite,Mid,Travel|Luggage
+BR200,Away,Premium,Travel|Luggage
+BR201,Tumi,Value,Travel|Luggage
+BR202,American Tourister,Mid,Travel|Luggage
+BR203,Travelpro,Premium,Travel
+BR204,VIP,Value,Travel|Luggage
+BR205,Safari,Mid,Travel|Luggage
+BR206,Skybags,Premium,Travel|Luggage
+BR207,PlayStation,Value,Gaming
+BR208,Xbox,Mid,Gaming
+BR209,Nintendo,Premium,Gaming
+BR210,Razer,Value,Gaming|Peripherals
+BR211,Logitech G,Mid,Gaming
+BR212,SteelSeries,Premium,Gaming|Peripherals
+BR213,Ant Esports,Value,Gaming|Peripherals
+BR214,Whirlpool,Mid,Appliances
+BR215,GE Appliances,Premium,Appliances
+BR216,KitchenAid,Value,Appliances|Kitchen
+BR217,Frigidaire,Mid,Appliances
+BR218,Godrej,Premium,Appliances|Cleaning
+BR219,Voltas,Value,Appliances
+BR220,Havells,Mid,Appliances|Lighting
+BR221,Bajaj Electricals,Premium,Appliances|Kitchen|Lighting
+BR222,Usha,Value,Appliances
+BR223,Orient Electric,Mid,Appliances
+BR224,IFB,Premium,Appliances
+BR225,Tempur-Pedic,Value,Bedding
+BR226,Sealy,Mid,Bedding
+BR227,Casper,Premium,Bedding
+BR228,Purple,Value,Bedding
+BR229,Brooklinen,Mid,Bedding
+BR230,Bombay Dyeing,Premium,Bedding
+BR231,Spaces,Value,Bedding
+BR232,Welspun,Mid,Bedding
+BR233,D'Decor,Premium,Bedding
+BR234,Cuisinart,Value,Kitchen
+BR235,Instant Pot,Mid,Kitchen
+BR236,Le Creuset,Premium,Kitchen
+BR237,Ninja,Value,Kitchen
+BR238,Vitamix,Mid,Kitchen
+BR239,Prestige,Premium,Kitchen
+BR240,Hawkins,Value,Kitchen
+BR241,Pigeon,Mid,Kitchen
+BR242,Butterfly,Premium,Kitchen
+BR243,Milton,Value,Kitchen
+BR244,Wonderchef,Mid,Kitchen
+BR245,CB2,Premium,Decor
+BR246,Anthropologie,Value,Decor
+BR247,Philips Hue,Mid,Lighting|Smart Home
+BR248,GE Lighting,Premium,Lighting
+BR249,Lutron,Value,Lighting
+BR250,Feit Electric,Mid,Lighting
+BR251,Crompton,Premium,Lighting
+BR252,Syska,Value,Lighting|Smart Home
+BR253,Wipro Lighting,Mid,Lighting
+BR254,Rubbermaid,Premium,Storage
+BR255,Sterilite,Value,Storage
+BR256,The Container Store,Mid,Storage
+BR257,Clorox,Premium,Cleaning
+BR258,Lysol,Value,Cleaning
+BR259,Swiffer,Mid,Cleaning
+BR260,Dyson,Premium,Cleaning
+BR261,Bissell,Value,Cleaning
+BR262,Shark,Mid,Cleaning
+BR263,Harpic,Premium,Cleaning
+BR264,Vim,Value,Cleaning
+BR265,Moleskine,Mid,Stationery
+BR266,Crayola,Premium,Stationery
+BR267,Classmate,Value,Stationery
+BR268,Navneet,Mid,Stationery
+BR269,Flair,Premium,Stationery
+BR270,Pampers,Value,Baby
+BR271,Huggies,Mid,Baby
+BR272,LuvLap,Premium,Baby
+BR273,Sonos,Value,Audio
+BR274,Beats,Mid,Audio
+BR275,Zebronics,Premium,Audio|Peripherals
+BR276,Portronics,Value,Audio|Gadgets
+BR277,Apple,Mid,Wearables|Gadgets|Computing
+BR278,Fitbit,Premium,Wearables
+BR279,Garmin,Value,Wearables
+BR280,Fire-Boltt,Mid,Wearables
+BR281,GOQii,Premium,Wearables
+BR282,Google Nest,Value,Smart Home
+BR283,Amazon Ring,Mid,Smart Home
+BR284,Ecobee,Premium,Smart Home
+BR285,Wyze,Value,Smart Home
+BR286,Trek,Mid,Cycling
+BR287,Specialized,Premium,Cycling
+BR288,Cannondale,Value,Cycling
+BR289,Giant,Mid,Cycling
+BR290,Schwinn,Premium,Cycling
+BR291,Hero Cycles,Value,Cycling
+BR292,Firefox,Mid,Cycling
+BR293,Asics,Premium,Running
+BR294,Brooks,Value,Running
+BR295,Saucony,Mid,Running
+BR296,Hoka,Premium,Running
+BR297,MSR,Value,Camping
+BR298,Big Agnes,Mid,Camping
+BR299,Merrell,Premium,Hiking
+BR300,Salomon,Value,Hiking
+BR301,Shimano,Mid,Fishing
+BR302,Rapala,Premium,Fishing
+BR303,Abu Garcia,Value,Fishing
+BR304,Berkley,Mid,Fishing
+BR305,Speedo,Premium,Swimming
+BR306,TYR,Value,Swimming
+BR307,Arena,Mid,Swimming
+BR308,Lululemon,Premium,Yoga
+BR309,Manduka,Value,Yoga
+BR310,Gaiam,Mid,Yoga
+BR311,Alo Yoga,Premium,Yoga
+BR312,CeraVe,Value,Skincare
+BR313,La Roche-Posay,Mid,Skincare
+BR314,Olay,Premium,Skincare
+BR315,The Ordinary,Value,Skincare
+BR316,Mamaearth,Mid,Skincare
+BR317,Pantene,Premium,Haircare
+BR318,Head & Shoulders,Value,Haircare
+BR319,TRESemmé,Mid,Haircare
+BR320,Dove,Premium,Haircare
+BR321,Herbal Essences,Value,Haircare
+BR322,Parachute,Mid,Haircare
+BR323,Indulekha,Premium,Haircare
+BR324,Bajaj Almond Drops,Value,Haircare
+BR325,Nature Made,Mid,Supplements
+BR326,Optimum Nutrition,Premium,Supplements
+BR327,GNC,Value,Supplements
+BR328,NOW Foods,Mid,Supplements
+BR329,MuscleBlaze,Premium,Supplements
+BR330,HealthKart,Value,Supplements
+BR331,Zandu,Mid,Supplements
+BR332,Anker,Premium,Gadgets
+BR333,Belkin,Value,Gadgets
+BR334,Logitech,Mid,Gadgets|Peripherals
+BR335,Ambrane,Premium,Gadgets
+BR336,Dell,Value,Computing|Monitors
+BR337,Lenovo,Mid,Computing
+BR338,Asus,Premium,Computing|Networking|Monitors
+BR339,Acer,Value,Computing
+BR340,Netgear,Mid,Networking
+BR341,TP-Link,Premium,Networking
+BR342,Linksys,Value,Networking
+BR343,Ubiquiti,Mid,Networking
+BR344,BenQ,Premium,Monitors
+BR345,ViewSonic,Value,Monitors
+BR346,Corsair,Mid,Peripherals
+BR347,HyperX,Premium,Peripherals
+BR348,Chanel,Value,Fragrance
+BR349,Dior,Mid,Fragrance
+BR350,Gucci,Premium,Fragrance
+BR351,Versace,Value,Fragrance
+BR352,Fogg,Mid,Fragrance
+BR353,Wild Stone,Premium,Fragrance
+BR354,Park Avenue,Value,Fragrance
+BR355,Engage,Mid,Fragrance
+BR356,Layer'r,Premium,Fragrance
+BR357,Pandora,Value,Jewelry
+BR358,Tiffany & Co.,Mid,Jewelry
+BR359,Swarovski,Premium,Jewelry
+BR360,Kay Jewelers,Value,Jewelry
+BR361,Tanishq,Mid,Jewelry
+BR362,Kalyan Jewellers,Premium,Jewelry
+BR363,CaratLane,Value,Jewelry
+BR364,Malabar Gold,Mid,Jewelry
