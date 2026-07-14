@@ -351,10 +351,19 @@ for _idx, _name in enumerate(BRAND_NAMES, start=1):
         CATEGORY_TO_BRAND_IDS[_cat].append(_bid)
 
 
-def product_attributes(category: str, i: int) -> Tuple[str, str, bool, int, str, str]:
-    title_base = stable_choice(CATEGORY_PRODUCT_TYPES[category], i)
-    color = stable_choice(COLORS, i * 3 + 1)
-    material = stable_choice(MATERIALS, i * 5 + 2)
+def product_attributes(category: str, type_idx: int, diversity_idx: int) -> Tuple[str, str, bool, int, str, str]:
+    # type_idx is a PER-CATEGORY counter (0, 1, 2, ... for the Nth product in
+    # THIS category), not the global product index — this ensures each
+    # category's product-type list cycles independently and evenly, so the
+    # first product in a category always gets that category's first type
+    # (e.g. Clothing's first product is always a "Jacket"), rather than only
+    # showing up once every lcm(num_categories, type_list_length) products.
+    title_base = stable_choice(CATEGORY_PRODUCT_TYPES[category], type_idx)
+    # diversity_idx is the global product index — fine to reuse here since
+    # COLORS/MATERIALS are shared across all categories, so there's no
+    # per-category cycle-alignment issue for these two.
+    color = stable_choice(COLORS, diversity_idx * 3 + 1)
+    material = stable_choice(MATERIALS, diversity_idx * 5 + 2)
     age_sensitive = category in {"Beauty", "Supplements", "Gadgets", "Fragrance", "Jewelry"}
     min_age = 18 if age_sensitive else 0
     description = (
@@ -368,6 +377,7 @@ def generate_products(out: Path, n_products: int, rng: random.Random, chunk_size
     header = ["product_id", "category_id", "brand_id", "title", "description", "base_price", "rating_avg", "review_count", "age_restricted", "min_age", "color_family", "material", "created_at"]
     path = out / "products.csv"
     first = True
+    category_counters: dict = {}  # category_name -> count of products seen so far in this category
     for start, end in chunked_range(n_products, chunk_size):
         rows = []
         for i in range(start, end):
@@ -378,7 +388,9 @@ def generate_products(out: Path, n_products: int, rng: random.Random, chunk_size
             candidate_brand_ids = CATEGORY_TO_BRAND_IDS[category_name]
             brand_id = candidate_brand_ids[i % len(candidate_brand_ids)]
             brand_name = BRAND_NAMES[int(brand_id[2:]) - 1]
-            title_base, description, age_sensitive, min_age, color, material = product_attributes(category_name, i)
+            cat_count = category_counters.get(category_name, 0)
+            category_counters[category_name] = cat_count + 1
+            title_base, description, age_sensitive, min_age, color, material = product_attributes(category_name, cat_count, i)
             base_price = round(8 + ((i * 7) % 492) + ((i % 100) / 100), 2)
             rating_avg = round(2.8 + ((i * 17) % 22) / 10, 2)
             review_count = 5 + (i % 5000)
@@ -623,19 +635,24 @@ def scale_counts(counts: dict, scale: float) -> dict:
 
 
 def enforce_full_product_coverage(counts: dict) -> dict:
-    """Guarantee every product gets at least one variant, and every product
-    gets at least one order_item (i.e. shows up in orders).
+    """Guarantee every product gets at least one variant, every product
+    gets at least one order_item (i.e. shows up in orders), and every
+    variant gets at least one inventory snapshot.
 
     Why this is needed: variants are assigned to products via
-    `product_idx = i % n_products` in generate_variants, and order_items are
+    `product_idx = i % n_products` in generate_variants, order_items are
     assigned via `variant_idx = i % n_variants` then `product_idx = variant_idx
-    % n_products` in generate_order_items. Those formulas only cover every
-    product_idx in [0, n_products) if:
-        product_variants >= products
-        order_items       >= product_variants
-    If either count is smaller, the tail of products simply never gets
-    picked and ends up with zero variants / zero orders. Rather than let
-    that happen silently, we bump the counts up here and tell you when we do.
+    % n_products` in generate_order_items, and inventory_snapshots are
+    assigned via that same `variant_idx = i % n_variants` pattern in
+    generate_inventory. Those formulas only cover every product_idx /
+    variant_idx if:
+        product_variants    >= products
+        order_items          >= product_variants
+        inventory_snapshots  >= product_variants
+    If any of these is smaller, the tail of products/variants simply never
+    gets picked and ends up with zero variants / zero orders / zero
+    inventory rows. Rather than let that happen silently, we bump the
+    counts up here and tell you when we do.
     """
     adjusted = dict(counts)
     notes = []
@@ -653,6 +670,13 @@ def enforce_full_product_coverage(counts: dict) -> dict:
             f"raising order_items to {adjusted['product_variants']} so every product appears in at least one order."
         )
         adjusted["order_items"] = adjusted["product_variants"]
+
+    if adjusted["inventory_snapshots"] < adjusted["product_variants"]:
+        notes.append(
+            f"inventory_snapshots ({adjusted['inventory_snapshots']}) < product_variants ({adjusted['product_variants']}); "
+            f"raising inventory_snapshots to {adjusted['product_variants']} so every variant gets at least one inventory row."
+        )
+        adjusted["inventory_snapshots"] = adjusted["product_variants"]
 
     if notes:
         print("NOTE: adjusted counts to guarantee full product coverage in orders:")

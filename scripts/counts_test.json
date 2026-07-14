@@ -1,11 +1,11 @@
 {
-  "products": 200,
-  "product_variants": 400,
+  "products": 500,
+  "product_variants": 1000,
   "customers": 100,
   "customer_preferences": 100,
-  "orders": 300,
-  "order_items": 500,
-  "inventory_snapshots": 400,
+  "orders": 500,
+  "order_items": 1000,
+  "inventory_snapshots": 1000, 
   "reviews": 250,
   "behavior_events": 50,
   "tool_call_logs": 50
