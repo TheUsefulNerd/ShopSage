@@ -13,11 +13,15 @@ pandas==2.3.3          # pinned to last 2.x — pandas 3.0 is out but is a break
 supabase==2.31.0
 python-dotenv==1.2.2
 
-# Vector store — uncomment whichever is chosen (see docs/team.md open decision)
-# chromadb==1.5.9
-# qdrant-client==1.18.0
+# Vector store
+chromadb==1.5.9
+# qdrant-client==1.18.0         # alternative — uncomment if team switches
 
-# Embedding model client — add once chosen (see docs/team.md open decision)
+# Embedding model
+# NOTE: sentence-transformers is intentionally unpinned — pinning to 4.x pulls
+# transformers which requires huggingface-hub<1.0, conflicting with gradio 6.x
+# which needs huggingface-hub>=1.2.0. Let pip resolve a compatible set.
+sentence-transformers
 
 # --- Week 2: Tools, MCP & Memory ---
 # mcp==1.28.1

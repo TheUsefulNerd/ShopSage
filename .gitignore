@@ -216,3 +216,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ShopSage — project-specific ignores
+.env                     # API keys — never commit (use env.example as the template)
+.chroma/                 # local Chroma persistent index — rebuild with ingestion.py
+.gradio/                 # Gradio internal files (SSL certs etc.)
