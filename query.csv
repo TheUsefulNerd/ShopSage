@@ -1,0 +1,101 @@
+query,expected_answer
+I'm looking for black diamond sleeping bag,Product: Black Diamond Sleeping Bag - Stay warm and cozy on your next camping adventure with the Black Diamond Sleeping Bag. This insulate (Price: $74.50)
+I'm looking for killer jeans shirt,Product: Killer Jeans Shirt - Stay stylish and comfortable all year round with our Killer Jeans Shirt. Made from high-quality deni (Price: $186.66)
+I'm looking for quechua headlamp,Product: Quechua Headlamp - Stay visible and safe in low-light conditions with the Quechua Headlamp. This reliable headlamp is d (Price: $183.25)
+I'm looking for plum lipstick,"Product: Plum Lipstick - Add a pop of color to your look with our Plum Lipstick. This rich, vibrant shade is perfect for ever (Price: $405.27)"
+I'm looking for decathlon hiking boots,Product: Decathlon Hiking Boots - Stay dry and comfortable on your next hiking adventure with the Decathlon Hiking Boots. These boots  (Price: $36.04)
+I'm looking for black diamond camping backpack,Product: Black Diamond Camping Backpack - The Black Diamond Camping Backpack is a versatile and reliable companion for your outdoor adventures (Price: $37.15)
+I'm looking for biba jeans,"Product: Biba Jeans - Stay stylish and comfortable all year round with these Biba Jeans. Made from high-quality denim, the (Price: $118.86)"
+I'm looking for salomon hiking boots,Product: Salomon Hiking Boots - Stay dry and comfortable on your next hiking adventure with the Salomon Hiking Boots. These boots fe (Price: $246.34)
+I'm looking for gap dress,"Product: Gap Dress - Stay stylish and comfortable this season with the Gap Dress. Made from breathable and soft fabric, t (Price: $221.71)"
+I'm looking for metro shoes running shoes,Product: Metro Shoes Running Shoes - Stay on top of your fitness game with the Metro Shoes Running Shoes. Designed for performance and co (Price: $272.08)
+I'm looking for tommy hilfiger sweater,"Product: Tommy Hilfiger Sweater - Stay warm and stylish this season with the Tommy Hilfiger Sweater. Made from soft, high-quality mate (Price: $400.56)"
+I'm looking for columbia cooler,"Product: Columbia Cooler - Stay cool and refreshed on warm days with the Columbia Cooler, a versatile and portable insulated ba (Price: $393.55)"
+I'm looking for maybelline compact powder,"Product: Maybelline Compact Powder - Achieve a smooth, flawless complexion with Maybelline Compact Powder. This long-lasting, oil-control (Price: $195.97)"
+I'm looking for raymond sweater,"Product: Raymond Sweater - Stay warm and stylish this season with the Raymond Sweater, a classic cold-weather essential. Made f (Price: $149.31)"
+I'm looking for mac cosmetics mascara,Product: MAC Cosmetics Mascara - Get the perfect lash look with MAC Cosmetics Mascara. This long-lasting mascara is designed to volum (Price: $158.62)
+I'm looking for woodland sandals,"Product: Woodland Sandals - Step into the great outdoors with our Woodland Sandals, perfect for warm weather adventures. Made wi (Price: $482.38)"
+I'm looking for merrell hiking boots,Product: Merrell Hiking Boots - Stay dry and comfortable on your next hiking adventure with the Merrell Hiking Boots. These rugged b (Price: $384.24)
+I'm looking for estée lauder face serum,"Product: Estée Lauder Face Serum - Nourish and rejuvenate your skin with Estée Lauder's Face Serum, a rich and hydrating formula design (Price: $477.67)"
+I'm looking for being human jeans,Product: Being Human Jeans - Stay stylish and comfortable all year round with these Being Human Jeans. Made from high-quality den (Price: $361.91)
+I'm looking for quechua sleeping bag,Product: Quechua Sleeping Bag - Stay warm and comfortable on your outdoor adventures with the Quechua Sleeping Bag. This insulated s (Price: $72.20)
+Show me shoes products,"Product: Reebok Running Shoes - Stay on top of your fitness game with these Reebok running shoes, designed for high-performance runn (Price: $305.83)"
+Show me boots products,"Product: Liberty Boots - Step into the season with the Liberty Boots, a stylish and versatile cold-weather companion. Featuri (Price: $95.53)"
+Show me loafers products,"Product: Relaxo Loafers - Step into comfort with Relaxo Loafers, perfect for casual outings and everyday wear. These loafers f (Price: $377.23)"
+Show me sweater products,"Product: Spykar Sweater - Stay warm and stylish this season with the Spykar Sweater, perfect for casual outings and everyday w (Price: $153.91)"
+Show me shoes products,"Product: Bata Running Shoes - Stay on top of your fitness game with the Bata Running Shoes, designed for high-intensity workouts a (Price: $64.08)"
+Show me trekking products,Product: Decathlon Trekking Pole - Stay stable and confident on your next trek with the Decathlon Trekking Pole. This sturdy pole featu (Price: $281.39)
+Show me lakmé products,Product: Lakmé Mascara - Get the perfect lash look with Lakmé Mascara. This long-lasting mascara is designed to volumize and  (Price: $125.87)
+Show me cooler products,Product: Quechua Cooler - Stay cool and refreshed on your outdoor adventures with the Quechua Cooler. This insulated cooler ba (Price: $146.90)
+Show me backpack products,Product: Osprey Hiking Backpack - The Osprey Hiking Backpack is designed for long-distance hiking and backpacking adventures. Its vent (Price: $205.39)
+Show me sugar products,"Product: Sugar Cosmetics Face Serum - Nourish and rejuvenate your skin with the Sugar Cosmetics Face Serum, a lightweight, non-greasy form (Price: $18.42)"
+Show me uniqlo products,"Product: Uniqlo Jacket - Stay warm and stylish with the Uniqlo Jacket, a versatile and functional outerwear piece designed fo (Price: $254.46)"
+Show me compact products,"Product: Plum Compact Powder - Achieve a smooth, natural-looking finish with our Plum Compact Powder. This versatile powder provide (Price: $337.47)"
+Show me jeans products,"Product: Biba Jeans - Stay stylish and comfortable all year round with these Biba Jeans. Made from high-quality denim, the (Price: $118.86)"
+Show me lipstick products,Product: Colorbar Lipstick - Add a pop of color to your look with this vibrant Colorbar Lipstick. Formulated with nourishing ingr (Price: $55.77)
+Show me black products,Product: Black Diamond Hiking Boots - Stay dry and warm on your next hiking adventure with the Black Diamond Hiking Boots. These rugged bo (Price: $312.84)
+Show me jeans products,"Product: Van Heusen Jeans - Stay stylish and comfortable all year round with these Van Heusen Jeans. Made from durable denim, th (Price: $116.56)"
+Show me being products,"Product: Being Human Jacket - Stay warm and stylish with the Being Human Jacket, perfect for cold winter days. This jacket feature (Price: $13.71)"
+Show me boots products,"Product: Converse Boots - Stay warm and stylish this winter with the Converse Boots, featuring a waterproof design to keep you (Price: $379.53)"
+Show me spykar products,"Product: Spykar Jacket - Stay warm and stylish this season with the Spykar Jacket, a versatile and functional outerwear piece (Price: $9.11)"
+Show me hiking products,Product: Black Diamond Hiking Boots - Stay dry and warm on your next hiking adventure with the Black Diamond Hiking Boots. These rugged bo (Price: $312.84)
+Show me neutrogena products,"Product: Neutrogena Mascara - Define your lashes with Neutrogena's Mascara, a long-lasting formula that lengthens, volumizes, and  (Price: $267.37)"
+Show me hoodie products,"Product: Allen Solly Hoodie - Stay warm and stylish with the Allen Solly Hoodie, perfect for casual outings. This hoodie features  (Price: $85.11)"
+Show me levi's products,"Product: Levi's Shirt - Stay stylish and comfortable with this classic Levi's shirt, perfect for casual wear. Made from high (Price: $190.26)"
+Show me hiking products,Product: Columbia Hiking Backpack - Stay dry and comfortable on your next hiking adventure with the Columbia Hiking Backpack. This rugge (Price: $349.19)
+Show me raymond products,"Product: Raymond Sweater - Stay warm and stylish this season with the Raymond Sweater, a classic cold-weather essential. Made f (Price: $149.31)"
+osprey camping backpack under $335,Product: Osprey Camping Backpack - The Osprey Camping Backpack is a versatile and reliable companion for your outdoor adventures. Desig (Price: $286.10) - Within budget
+decathlon hiking backpack under $319,Product: Decathlon Hiking Backpack - The Decathlon Hiking Backpack is a versatile and reliable companion for your outdoor adventures. Its (Price: $277.79) - Within budget
+forest essentials foundation under $304,"Product: Forest Essentials Foundation - Get flawless, even-toned skin with Forest Essentials Foundation. This long-lasting foundation provid (Price: $265.07) - Within budget"
+relaxo loafers under $404,"Product: Relaxo Loafers - Step into comfort with Relaxo Loafers, perfect for casual outings and everyday wear. These loafers f (Price: $377.23) - Within budget"
+black diamond trekking pole under $329,"Product: Black Diamond Trekking Pole - Stay stable and secure on your next trek with the Black Diamond Trekking Pole. This durable, lightwe (Price: $314.14) - Within budget"
+wildcraft hiking backpack under $208,Product: Wildcraft Hiking Backpack - The Wildcraft Hiking Backpack is designed for all-day comfort on the trail. Its durable construction (Price: $172.64) - Within budget
+salomon hiking boots under $538,Product: Salomon Hiking Boots - Stay dry and comfortable on your next hiking adventure with the Salomon Hiking Boots. These boots fe (Price: $489.39) - Within budget
+black diamond hiking backpack under $330,Product: Black Diamond Hiking Backpack - The Black Diamond Hiking Backpack is a versatile and reliable companion for your outdoor adventures. (Price: $316.44) - Within budget
+new balance boots under $314,"Product: New Balance Boots - Stay warm and dry this winter with the New Balance Boots, featuring waterproof construction and insu (Price: $270.78) - Within budget"
+gap jeans under $385,"Product: Gap Jeans - Stay stylish and comfortable all year round with our Gap Jeans. Made from high-quality denim, these  (Price: $365.51) - Within budget"
+lotus herbals compact powder under $244,"Product: Lotus Herbals Compact Powder - Get a flawless, natural-looking complexion with the Lotus Herbals Compact Powder. This compact powde (Price: $228.72) - Within budget"
+quechua camping chair under $129,Product: Quechua Camping Chair - Stay comfortable and dry on your camping adventures with the Quechua Camping Chair. This sturdy chai (Price: $109.55) - Within budget
+decathlon trekking pole under $299,Product: Decathlon Trekking Pole - Stay stable and confident on your next trek with the Decathlon Trekking Pole. This sturdy pole featu (Price: $275.49) - Within budget
+lotus herbals face serum under $197,"Product: Lotus Herbals Face Serum - Nourish and rejuvenate your skin with the Lotus Herbals Face Serum, a rich and hydrating formula tha (Price: $160.92) - Within budget"
+van heusen jeans under $157,"Product: Van Heusen Jeans - Stay stylish and comfortable all year round with these Van Heusen Jeans. Made from durable denim, th (Price: $116.56) - Within budget"
+salomon hiking boots under $285,Product: Salomon Hiking Boots - Stay dry and comfortable on your next hiking adventure with the Salomon Hiking Boots. These boots fe (Price: $246.34) - Within budget
+new balance loafers under $243,"Product: New Balance Loafers - Step into comfort with the New Balance Loafers, perfect for casual wear. These loafers feature a sli (Price: $202.98) - Within budget"
+osprey tent under $290,Product: Osprey Tent - The Osprey Tent is a versatile and waterproof shelter designed for camping and outdoor adventures. I (Price: $249.75) - Within budget
+campus shoes boots under $84,"Product: Campus Shoes Boots - Stay warm and dry this season with our Campus Shoes Boots, designed for cold-weather comfort. Featur (Price: $62.78) - Within budget"
+sugar cosmetics compact powder under $119,Product: Sugar Cosmetics Compact Powder - Get a flawless finish with the Sugar Cosmetics Compact Powder. This compact powder provides sheer to (Price: $86.22) - Within budget
+Best rated decathlon hiking boots,"Product: Decathlon Hiking Boots - Stay dry and comfortable on your next hiking adventure with the Decathlon Hiking Boots. These boots  (Rating: 4.5/5, Price: $36.04)"
+Best rated allen solly hoodie,"Product: Allen Solly Hoodie - Stay warm and stylish with the Allen Solly Hoodie, perfect for casual outings. This hoodie features  (Rating: 4.5/5, Price: $85.11)"
+Best rated new balance sneakers,"Product: New Balance Sneakers - Stay on top of your fitness game with these New Balance Sneakers, designed for comfort and performan (Rating: 4.5/5, Price: $134.18)"
+Best rated quechua headlamp,"Product: Quechua Headlamp - Stay visible and safe in low-light conditions with the Quechua Headlamp. This reliable headlamp is d (Rating: 4.5/5, Price: $183.25)"
+Best rated l'oréal foundation,"Product: L'Oréal Foundation - Achieve a flawless, even complexion with L'Oréal Foundation. This long-lasting foundation provides m (Rating: 4.5/5, Price: $232.32)"
+Best rated decathlon trekking pole,"Product: Decathlon Trekking Pole - Stay stable and confident on your next trek with the Decathlon Trekking Pole. This sturdy pole featu (Rating: 4.5/5, Price: $281.39)"
+Best rated killer jeans hoodie,"Product: Killer Jeans Hoodie - Stay warm and stylish with our Killer Jeans Hoodie, perfect for casual wear during the colder months (Rating: 4.5/5, Price: $330.46)"
+Best rated converse boots,"Product: Converse Boots - Stay warm and stylish this winter with the Converse Boots, featuring a waterproof design to keep you (Rating: 4.5/5, Price: $379.53)"
+Best rated marmot headlamp,"Product: Marmot Headlamp - Stay visible and safe in the dark with the Marmot Headlamp. This reliable headlamp features a bright (Rating: 4.5/5, Price: $428.60)"
+Best rated estée lauder face serum,"Product: Estée Lauder Face Serum - Nourish and rejuvenate your skin with Estée Lauder's Face Serum, a rich and hydrating formula design (Rating: 4.5/5, Price: $477.67)"
+Best rated decathlon hiking backpack,"Product: Decathlon Hiking Backpack - The Decathlon Hiking Backpack is a versatile and reliable companion for your outdoor adventures. Wit (Rating: 4.5/5, Price: $34.74)"
+Best rated calvin klein hoodie,"Product: Calvin Klein Hoodie - Stay warm and stylish with this Calvin Klein Hoodie, perfect for casual wear during the colder month (Rating: 4.5/5, Price: $83.81)"
+Best rated bata sandals,"Product: Bata Sandals - Step into comfort with the Bata Sandals, perfect for warm weather. Made from breathable materials, t (Rating: 4.5/5, Price: $132.88)"
+Best rated coleman headlamp,"Product: Coleman Headlamp - Stay visible and hands-free in the dark with the Coleman Headlamp. This reliable headlamp features a (Rating: 4.5/5, Price: $181.95)"
+Best rated clinique lipstick,"Product: Clinique Lipstick - Add a pop of color to your look with this Clinique Lipstick, a long-lasting and moisturizing formula (Rating: 4.5/5, Price: $230.02)"
+I need telepathic hat,No matching products found in inventory
+I need telepathic hat,No matching products found in inventory
+I need telepathic hat,No matching products found in inventory
+I need holographic flying shoes,No matching products found in inventory
+I need invisible socks,No matching products found in inventory
+I need time traveling boots,No matching products found in inventory
+I need telepathic hat,No matching products found in inventory
+I need quantum pants,No matching products found in inventory
+I need telepathic hat,No matching products found in inventory
+I need quantum pants,No matching products found in inventory
+Do you have salomon hiking boot,Similar to: Salomon Hiking Boots - Stay dry and comfortable on your next hiking adventure with the Salomon Hiking Boots. These boots fe (Price: $489.39)
+Do you have nike shir,"Similar to: Nike Shirt - Stay cool and comfortable in the Nike Shirt, a breathable and moisture-wicking athletic top designed (Price: $188.96)"
+Do you have fabindia jean,Similar to: Fabindia Jeans - Stay stylish and comfortable all year round with Fabindia's classic jeans. Made from high-quality de (Price: $114.26)
+Do you have campus shoes boot,"Similar to: Campus Shoes Boots - Stay warm and dry this season with our Campus Shoes Boots, designed for cold-weather comfort. Featur (Price: $62.78)"
+Do you have van heusen jacke,"Similar to: Van Heusen Jacket - Stay warm and stylish with the Van Heusen Jacket, a versatile and functional outerwear piece designe (Price: $260.36)"
+Do you have peter england shir,"Similar to: Peter England Shirt - Stay stylish and comfortable with this Peter England Shirt, perfect for casual wear. Made from high- (Price: $435.61)"
+Do you have raymond sweate,"Similar to: Raymond Sweater - Stay warm and stylish this season with the Raymond Sweater, a classic cold-weather essential. Made f (Price: $149.31)"
+Do you have marmot camping chai,Similar to: Marmot Camping Chair - Stay comfortable and dry on your camping adventures with the Marmot Camping Chair. This chair featur (Price: $354.90)
+Do you have plum foundatio,"Similar to: Plum Foundation - Achieve a smooth, even base with our Plum Foundation. This long-lasting foundation provides medium t (Price: $473.07)"
+Do you have salomon hiking boot,Similar to: Salomon Hiking Boots - Stay dry and comfortable on your next hiking adventure with the Salomon Hiking Boots. These boots fe (Price: $246.34)
