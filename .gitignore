@@ -195,9 +195,9 @@ cython_debug/
 .abstra/
 
 # Visual Studio Code
-#   Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore 
+#   Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore
 #   that can be found at https://github.com/github/gitignore/blob/main/Global/VisualStudioCode.gitignore
-#   and can be added to the global gitignore or merged into this file. However, if you prefer, 
+#   and can be added to the global gitignore or merged into this file. However, if you prefer,
 #   you could uncomment the following to ignore the entire vscode folder
 # .vscode/
 # Temporary file for partial code execution
@@ -217,7 +217,11 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-# ShopSage — project-specific ignores
-.env                     # API keys — never commit (use env.example as the template)
-.chroma/                 # local Chroma persistent index — rebuild with ingestion.py
-.gradio/                 # Gradio internal files (SSL certs etc.)
+# ShopSage project-specific ignores
+# (comments must be on their OWN line -- a trailing comment after a
+# pattern on the same line breaks the pattern; git treats the whole
+# line, comment included, as one literal non-matching pattern)
+.env
+.chroma/
+.gradio/
+test_chatfn.py

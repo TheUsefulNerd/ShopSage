@@ -1,20 +1,24 @@
 #!/usr/bin/env python3
-"""Retrieval + shortlist logic for ShopSage Week 1 RAG pipeline.
+"""Retrieval logic for ShopSage — Chroma search and candidate filtering.
+
+No Groq/LLM code lives here. That's in app.py now, so this file has zero
+dependency on the app's entry point.
 
 Two public functions:
   - retrieve(query, top_k, max_distance) → list of candidate dicts
-  - get_shortlist(query, top_k, customer_age) → (answer_str, filtered_candidates)
-
-And one helper:
-  - extract_budget(query) → (min_budget, max_budget)
+  - build_candidate_block(query, top_k, customer_age) → ALL age-filtered
+    candidate dicts, up to top_k in length (empty list if none survive
+    filtering). Does NOT slice to top 3 — see its own docstring for why.
 
 Design notes:
-  - Budget filtering is done deterministically in Python (not by the LLM), so
-    the guardrail ("never recommend over-budget items") can't be silently dropped
-    by a bad generation.
+  - Budget/color/size filtering is NOT done here — app.py's chat_fn applies
+    those deterministically, AFTER live-enriching candidates via
+    get_product_details (tools.py), since price/stock must come from a live
+    lookup, not this module's Chroma-only data. This file only knows about
+    age (static, safe to keep in frozen Chroma metadata) — see below.
   - Age-restriction filtering uses categories.is_age_sensitive only.
     products.age_restricted was confirmed as a duplicate on current data
-    (nunique()==1 per category) and is intentionally ignored here.
+    (nunique()==1 per category) and is intentionally ignored.
   - MAX_RELEVANT_DISTANCE is a cosine-distance cutoff for what counts as a real
     candidate. 0.6 is a starting guess for all-MiniLM-L6-v2 on short product
     text. Tune it against real queries: run retrieve(..., max_distance=None) on
@@ -25,12 +29,11 @@ Design notes:
 from __future__ import annotations
 
 import os
-import re
 from typing import Optional
 
 import chromadb
-from groq import Groq
 from sentence_transformers import SentenceTransformer
+from langchain_huggingface import HuggingFaceEmbeddings
 
 try:
     from dotenv import load_dotenv
@@ -44,7 +47,6 @@ except ImportError:
 
 EMBED_MODEL = "all-MiniLM-L6-v2"
 COLLECTION_NAME = "shopsage_products"
-GROQ_MODEL = "llama-3.3-70b-versatile"
 
 # Cosine-distance cutoff: 0 = identical, 2 = opposite direction.
 # Hits beyond this threshold are dropped before the LLM sees them.
@@ -52,26 +54,7 @@ GROQ_MODEL = "llama-3.3-70b-versatile"
 # See the notebook's "=== debug: no cutoff ===" cell output for your dataset's
 # actual distance distribution, then pick a value that cleanly separates
 # relevant from irrelevant hits.
-MAX_RELEVANT_DISTANCE: float = 0.6
-
-SYSTEM_PROMPT = (
-    "You are ShopSage, a budget-aware shopping assistant. You are given a user query "
-    "and a pre-filtered list of candidate products (already within budget and age-appropriate). "
-    "Recommend the 2-3 best matches from the candidates only — never invent products or attributes "
-    "not present in the candidate list. For each pick, give a one-sentence reason tied to the query. "
-    "If no candidates fit, say so plainly and do not force a recommendation."
-)
-
-# Budget regex patterns — handles decimals and both upper and lower bounds.
-# Known gap: "between $X and $Y" is not handled yet.
-_UPPER_RE = re.compile(
-    r"(?:under|below|less than|up to|no more than)\s*\$?(\d+(?:\.\d+)?)",
-    re.IGNORECASE,
-)
-_LOWER_RE = re.compile(
-    r"(?:over|above|more than|at least)\s*\$?(\d+(?:\.\d+)?)",
-    re.IGNORECASE,
-)
+MAX_RELEVANT_DISTANCE: float = 2
 
 
 # ---------------------------------------------------------------------------
@@ -79,26 +62,35 @@ _LOWER_RE = re.compile(
 # ---------------------------------------------------------------------------
 
 _embedder: Optional[SentenceTransformer] = None
-_groq_client: Optional[Groq] = None
+_hf_token: Optional[str] = None
 
 
-def _get_embedder() -> SentenceTransformer:
-    global _embedder
-    if _embedder is None:
-        _embedder = SentenceTransformer(EMBED_MODEL)
-    return _embedder
-
-
-def _get_groq_client() -> Groq:
-    global _groq_client
-    if _groq_client is None:
-        api_key = os.environ.get("GROQ_API_KEY")
+def _get_hf_token() -> str:
+    global _hf_token
+    if _hf_token is None:
+        api_key = os.environ.get("HF_TOKEN")
         if not api_key:
             raise EnvironmentError(
-                "GROQ_API_KEY is not set. Add it to your .env file."
+                "HF_TOKEN is not set. Add it to your .env file."
             )
-        _groq_client = Groq(api_key=api_key)
-    return _groq_client
+        _hf_token = api_key
+    return _hf_token
+
+
+def _get_embedder() -> HuggingFaceEmbeddings:
+    global _embedder
+    if _embedder is None:
+        print("[_get_embedder] CREATING embedder for the first time this process...")
+        hf_token = _get_hf_token()
+        _embedder = HuggingFaceEmbeddings(
+            model_name="all-MiniLM-L6-v2",
+            model_kwargs={"device": "cpu", "token": hf_token},
+            encode_kwargs={"normalize_embeddings": True}
+        )
+        print("[_get_embedder] Embedder created and cached.")
+    else:
+        print("[_get_embedder] Reusing already-cached embedder.")
+    return _embedder
 
 
 # ---------------------------------------------------------------------------
@@ -127,7 +119,7 @@ def retrieve(
         - "distance": cosine distance (lower = more similar)
     """
     embedder = _get_embedder()
-    query_embedding = embedder.encode([query], normalize_embeddings=True).tolist()
+    query_embedding = embedder.embed_documents([query])
     results = collection.query(query_embeddings=query_embedding, n_results=top_k)
 
     hits = []
@@ -140,112 +132,6 @@ def retrieve(
             continue
         hits.append({**meta, "chunk_text": doc, "distance": dist})
     return hits
-
-
-# ---------------------------------------------------------------------------
-# Budget parsing
-# ---------------------------------------------------------------------------
-
-def extract_budget(query: str) -> tuple[Optional[float], Optional[float]]:
-    """Parse budget constraints from a natural-language query.
-
-    Returns:
-        (min_budget, max_budget) — either can be None if not stated.
-
-    Handles:
-        - "under $80", "below $80", "less than $80", "up to $80",
-          "no more than $80" → max_budget
-        - "over $50", "above $50", "more than $50",
-          "at least $50" → min_budget
-        - Decimals: "$79.99"
-
-    Known gap: "between $X and $Y" is not handled.
-    """
-    upper = _UPPER_RE.search(query)
-    lower = _LOWER_RE.search(query)
-    max_budget = float(upper.group(1)) if upper else None
-    min_budget = float(lower.group(1)) if lower else None
-    return min_budget, max_budget
-
-
-# ---------------------------------------------------------------------------
-# Shortlist generation
-# ---------------------------------------------------------------------------
-
-def get_shortlist(
-    query: str,
-    collection: chromadb.Collection,
-    top_k: int = 8,
-    customer_age: Optional[int] = None,
-) -> tuple[str, list[dict]]:
-    """Full RAG pipeline: retrieve → filter → LLM rank + narrate.
-
-    Steps:
-      1. Parse budget from query (deterministic regex).
-      2. Retrieve top_k candidates from Chroma with distance cutoff.
-      3. Deterministically filter by budget and age restriction.
-      4. Pass up to 3 survivors to Groq to write the human-readable answer.
-
-    The LLM only ever sees already-filtered candidates — it doesn't decide
-    which products are in budget or age-appropriate.
-
-    Args:
-        query: User's natural-language shopping request.
-        collection: Chroma collection to search.
-        top_k: How many Chroma hits to retrieve before filtering.
-        customer_age: Customer's age, if known. If None, age-sensitive items
-                      are NOT filtered out (unknown age = pass-through for now;
-                      update this default once Week 2 wires up per-user context).
-
-    Returns:
-        (answer, filtered_candidates)
-        - answer: Human-readable string from Groq (or a "nothing found" message).
-        - filtered_candidates: The full filtered list (useful for debug/logging).
-    """
-    min_budget, max_budget = extract_budget(query)
-    candidates = retrieve(query, collection, top_k=top_k)
-
-    filtered = []
-    for c in candidates:
-        # Budget guardrail (deterministic — not delegated to LLM)
-        if max_budget is not None and c["base_price"] > max_budget:
-            continue
-        if min_budget is not None and c["base_price"] < min_budget:
-            continue
-        # Age guardrail — uses is_age_sensitive (from categories table) only.
-        # products.age_restricted is intentionally ignored here; it was
-        # confirmed to be a duplicate field on the current dataset.
-        if c["is_age_sensitive"] and customer_age is not None and customer_age < 18:
-            continue
-        filtered.append(c)
-
-    if not filtered:
-        return (
-            "I couldn't find anything matching that budget/criteria in the catalog. "
-            "Want me to widen the search?",
-            [],
-        )
-
-    top_picks = filtered[:3]  # best-ranked survivors (Chroma already sorted by distance)
-    candidate_block = "\n".join(
-        f"- {c['title']} | ${c['base_price']} | {c['brand_name']} | "
-        f"{c['category_name']} | {c['color_family']}"
-        for c in top_picks
-    )
-
-    groq = _get_groq_client()
-    completion = groq.chat.completions.create(
-        model=GROQ_MODEL,
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {
-                "role": "user",
-                "content": f"User query: {query}\n\nCandidates:\n{candidate_block}",
-            },
-        ],
-        temperature=0.3,
-    )
-    return completion.choices[0].message.content, filtered
 
 
 # ---------------------------------------------------------------------------
@@ -276,7 +162,72 @@ def debug_distances(
         print(f"\n=== {q} ===")
         hits = retrieve(q, collection, top_k=top_k, max_distance=None)
         for h in hits:
+            # NOTE: base_price no longer printed — it's not in Chroma
+            # metadata anymore (removed to avoid stale frozen prices).
             print(
-                f"  {h['distance']:.3f}  ${h['base_price']:<8}  "
-                f"{h['title']}  ({h['category_name']})"
+                f"  {h['distance']:.3f}  {h['title']}  ({h['category_name']})"
             )
+
+
+# ---------------------------------------------------------------------------
+# Candidate finder (Groq call removed — see app.py's narrate_shortlist() for
+# the LLM-narrated version, which builds its own prompt text from this list)
+# ---------------------------------------------------------------------------
+
+def build_candidate_block(
+    query: str,
+    collection: chromadb.Collection,
+    top_k: int = 8,
+    customer_age: Optional[int] = None,
+) -> list[dict]:
+    """Retrieve → filter by age → return ALL survivors (up to top_k). No LLM
+    call here, and NO top-3 slicing here either (see NOTE below).
+
+    Renamed from get_shortlist(): "shortlist" implied an LLM-narrated answer,
+    which no longer happens in this function. It also no longer builds any
+    text block itself — it just returns the filtered candidate list; the
+    caller (app.py's chat_fn) decides what to do with an empty list and how
+    to format candidates into prompt text.
+
+    NOTE: this used to slice to the top 3 internally, but that slice moved
+    to the caller (chat_fn) — a live stock-check (get_product_details,
+    tools.py) needs to run and filter out out-of-stock candidates BEFORE the
+    final top-3 selection, not after. Slicing to 3 here would leave nothing
+    to backfill with if some of those 3 turn out to be out of stock.
+
+    Steps:
+      1. Retrieve top_k candidates from Chroma with distance cutoff.
+      2. Deterministically filter by age restriction.
+      3. Return ALL survivors (caller applies stock-filter + top-3 slice).
+
+    NOTE: budget filtering does NOT happen here — this function has no
+    access to live price data (Chroma-only). app.py's chat_fn applies
+    budget filtering deterministically, after enriching candidates via
+    get_product_details (tools.py), using real base_price values.
+
+    Args:
+        query: User's natural-language shopping request.
+        collection: Chroma collection to search.
+        top_k: How many Chroma hits to retrieve before filtering.
+        customer_age: Customer's age, if known. If None, age-sensitive items
+                      are NOT filtered out (unknown age = pass-through for now;
+                      update this default once Week 2 wires up per-user context).
+
+    Returns:
+        list[dict] — ALL age-filtered candidates, best-ranked first (Chroma
+        already sorts by distance), up to top_k in length. Empty list if
+        nothing survives filtering — the caller is responsible for handling
+        that case.
+    """
+    candidates = retrieve(query, collection, top_k=top_k)
+
+    filtered = []
+    for c in candidates:
+        # Age guardrail — uses is_age_sensitive (from categories table) only.
+        # products.age_restricted is intentionally ignored here; it was
+        # confirmed to be a duplicate field on the current dataset.
+        if c["is_age_sensitive"] and customer_age is not None and customer_age < 18:
+            continue
+        filtered.append(c)
+
+    return filtered
