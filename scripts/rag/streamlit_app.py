@@ -456,40 +456,12 @@ def process_message(user_message: str) -> str:
                 lines.append(f"- {item['quantity']}x {item['title']}" + (f" ({variant})" if variant else "") + f" — ${item['line_total']}, {item['item_status']}")
         return "\n".join(lines)
 
-    # --- Follow-up on a specific product ---
-    if intent.intent == "follow_up":
-        title = known_products.get(intent.referenced_product_id, {}).get("title", "that product")
-        details = get_product_details.invoke({"product_id": intent.referenced_product_id})
-        if "error" in details:
-            return f"I couldn't check {title} right now."
-        filtered, match_info = apply_deterministic_filters(
-            [details], color=intent.color, size=intent.size, min_rating=intent.min_rating
-        )
-        asked = " and ".join(filter(None, [intent.color, intent.size]))
-
-        def _exists(field, val):
-            if not val:
-                return True
-            return any(str(v.get(field, "")).lower() == str(val).lower() for v in details["variants"])
-
-        if not filtered:
-            return f"{title} is currently out of stock."
-        elif match_info["exact_match_found"]:
-            return f"Yes, **{title}** is available" + (f" in {asked}" if asked else "") + "."
-        elif intent.size and not match_info["size_matched"]:
-            if _exists('size_label', intent.size):
-                return f"Size {intent.size} for {title} is currently out of stock."
-            else:
-                return f"{title} doesn't have size {intent.size}."
-        elif intent.color and not match_info["color_matched"]:
-            if _exists('color_name', intent.color):
-                return f"**{title}** in {intent.color} is currently out of stock."
-            else:
-                return f"**{title}** doesn't come in {intent.color}."
-        return f"**{title}** is in stock."
-
-    # --- New search: RAG + deterministic filters + Groq narration ---
-    candidates = build_candidate_block(intent.search_query, customer_age=intent.recipient_age)
+    # --- Candidate Generation ---
+    if intent.intent == "follow_up" and intent.referenced_product_id:
+        candidates = [{"product_id": intent.referenced_product_id}]
+    else:
+        # RAG Search
+        candidates = build_candidate_block(intent.search_query, customer_age=intent.recipient_age)
 
     product_ids = [c["product_id"] for c in candidates]
     details_by_id = get_product_details_bulk.invoke({"product_ids": product_ids})
