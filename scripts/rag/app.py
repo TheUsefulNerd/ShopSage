@@ -97,27 +97,38 @@ SYSTEM_PROMPT = (
     "list of candidate products retrieved from the catalog (age-restricted "
     "items are excluded when the customer's age is known). All candidates "
     "given to you have ALREADY been verified to satisfy any stated budget, "
-    "color, and size constraints — you do not need to re-check or second-guess "
-    "this; it's guaranteed. "
+    "color, size, and rating constraints — you do not need to re-check or "
+    "second-guess this; it's guaranteed. "
     "Answer using only the candidates given — never invent products or attributes "
     "not present in the candidate list. If the candidate list is empty, say so plainly.\n\n"
-    "If the user message explicitly states what they asked about (e.g. "
-    "\"User specifically asked about: color: red\"), feel free to naturally "
-    "acknowledge it in your answer (e.g. \"available in red\") for a more "
-    "directly-responsive tone — but this is a style preference, not a "
-    "correctness check.\n\n"
-    "Format your response as follows:\n"
-    "- List EVERY candidate given, on its own line/bullet — name, price, AND "
-    "the exact size/color availability shown in \"In stock: ...\" for that "
-    "candidate. Preserve the size-to-color grouping exactly as given (e.g. "
-    "if given as \"Size 9: Black; Size 10: Blue\", keep sizes and colors "
-    "paired together — do NOT merge into a flat color list like \"available "
-    "in Black and Blue\", which loses which color belongs to which size). "
-    "Do not omit any candidate, and do not merge multiple products into one "
-    "sentence.\n"
-    "- After the list, end with a short follow-up question inviting the user to "
-    "narrow down or compare the options (e.g. ask about budget, preferred "
-    "feature, or which one they'd like to know more about)."
+    "MANDATORY FORMAT — every single candidate MUST be listed on its own "
+    "bullet, in EXACTLY this format, with NO field skipped:\n"
+    "<Product name>, $<price>, Rating: <rating>/5, In stock: <availability>\n\n"
+    "Worked example — given these two candidates:\n"
+    "**Osprey Hiking Boots**\n"
+    "Price: $207.69\n"
+    "Rating: 4.2/5\n"
+    "In stock: Size 8: Black, White\n\n"
+    "**Salomon Hiking Boots**\n"
+    "Price: $246.34\n"
+    "Rating: not rated yet\n"
+    "In stock: Size 8: Black; Size 9: Blue\n\n"
+    "...your response's bullet list must look EXACTLY like this — note "
+    "BOTH candidates show their own rating, not just one of them:\n"
+    "- Osprey Hiking Boots, $207.69, Rating: 4.2/5, In stock: Size 8: Black, White\n"
+    "- Salomon Hiking Boots, $246.34, Rating: not rated yet, In stock: Size 8: Black; Size 9: Blue\n\n"
+    "A rating mentioned for only one candidate, or missing from any bullet, "
+    "is WRONG — every bullet needs its own rating, even when it says "
+    "\"not rated yet\". Preserve the size-to-color grouping in "
+    "<availability> exactly as given — do NOT flatten \"Size 9: Black; "
+    "Size 10: Blue\" into \"available in Black and Blue\", which loses "
+    "which color belongs to which size. Do not omit any candidate, and do "
+    "not merge multiple products into one sentence.\n\n"
+    "If the user asked about a specific color/size/budget/rating, you may "
+    "naturally acknowledge it in your own words — but the MANDATORY FORMAT "
+    "above is not optional and takes priority over phrasing style.\n\n"
+    "After the list, end with a short follow-up question inviting the user "
+    "to narrow down or compare the options."
 )
 
 _groq_client: Optional[Groq] = None
@@ -175,6 +186,10 @@ class UserIntent(BaseModel):
     size: Optional[str] = None
     min_budget: Optional[float] = None
     max_budget: Optional[float] = None
+    # Deterministic threshold, like budget — "rating higher than 4",
+    # "rated above 4 stars", "best rated" all map here. Never treated as a
+    # soft preference; a candidate below this is simply excluded.
+    min_rating: Optional[float] = None
     recipient_age: Optional[int] = None
     order_id: Optional[str] = None
     # For "order_status" questions about the customer's ORDER HISTORY
@@ -194,26 +209,31 @@ class UserIntent(BaseModel):
 
 def _build_intent_extraction_prompt(known_products: dict[str, dict]) -> str:
     """known_products: {product_id: {"title": ..., "base_price": ...,
-    "sizes_shown": [...]}}, accumulated across the session (every product
-    shown so far, not just the most recent search).
+    "sizes_shown": [...], "colors_shown": [...]}}, accumulated across the
+    session (every product shown so far, not just the most recent search).
 
-    Enriched with price and sizes (not just title) so the model can resolve
-    references like "the $207 one" or "the size 8 Osprey" by DIRECT lookup
-    against this structured list — evidence showed the model reliably
-    extracts attributes like price/size/brand from a message, but was NOT
-    reliably cross-referencing them against its own unstructured prior
-    narration text to find the matching product_id. Giving it the needed
-    attributes directly, right here, removes that unreliable extra hop.
+    Enriched with price, sizes, AND colors (not just title) so the model can
+    resolve references like "the $207 one" or "the size 8 Osprey" or "the
+    red one" by DIRECT lookup against this structured list — evidence
+    showed the model reliably extracts attributes like price/size/color
+    from a message, but was NOT reliably cross-referencing them against its
+    own unstructured prior narration text to find the matching product_id.
+    Giving it the needed attributes directly, right here, removes that
+    unreliable extra hop. Color was added after finding a concrete case
+    where two candidates both had "Red" available and the model picked the
+    wrong one (defaulted to whichever was shown last), since color wasn't
+    part of this structured list before.
     """
     if known_products:
         known_list = "\n".join(
             f'  "{pid}": "{info["title"]}", ${info["base_price"]}, '
-            f'sizes: {", ".join(info["sizes_shown"]) if info.get("sizes_shown") else "n/a"}'
+            f'sizes: {", ".join(info["sizes_shown"]) if info.get("sizes_shown") else "n/a"}, '
+            f'colors: {", ".join(info.get("colors_shown") or []) or "n/a"}'
             for pid, info in known_products.items()
         )
         known_section = (
             f"Products shown so far in this conversation "
-            f"(product_id: title, price, sizes):\n{known_list}\n\n"
+            f"(product_id: title, price, sizes, colors):\n{known_list}\n\n"
         )
     else:
         known_section = "No products have been shown yet in this conversation.\n\n"
@@ -227,7 +247,8 @@ def _build_intent_extraction_prompt(known_products: dict[str, dict]) -> str:
         '{"search_query": string, "intent": "new_search" or "follow_up" or '
         '"order_status", "color": string or null, "size": string or null, '
         '"min_budget": number or '
-        'null, "max_budget": number or null, "recipient_age": integer or '
+        'null, "max_budget": number or null, "min_rating": number or null, '
+        '"recipient_age": integer or '
         'null, "order_id": string or null, "wants_order_history": true or '
         'false, "customer_email": string or null, "order_history_limit": '
         'integer or null, "referenced_product_id": string '
@@ -263,9 +284,10 @@ def _build_intent_extraction_prompt(known_products: dict[str, dict]) -> str:
         "size/color/stock questions with no "
         "new product description). If so, set referenced_product_id to the "
         "matching product_id from the list above — MATCH DIRECTLY against "
-        "the title, price, AND sizes shown for each product_id above (e.g. "
-        "if the message names a price, size, brand, or price threshold, "
-        "find the product_id whose title/price/sizes actually satisfies it "
+        "the title, price, sizes, AND colors shown for each product_id "
+        "above (e.g. if the message names a price, size, color, brand, or "
+        "price threshold, find the product_id whose title/price/sizes/"
+        "colors actually satisfies it "
         "— don't just guess based on recency). Never invent a product_id "
         "that isn't in the list; if you can't confidently match one, use "
         "\"new_search\" instead. "
@@ -273,12 +295,18 @@ def _build_intent_extraction_prompt(known_products: dict[str, dict]) -> str:
         "refinements to the current search thread. When genuinely unsure "
         "between \"follow_up\" and \"new_search\", prefer \"new_search\". "
         "\n\n"
+        "min_rating is a rating threshold, ONLY if an explicit number is "
+        "stated — e.g. \"rating higher than 4\", \"rated above 4 stars\" -> "
+        "min_rating=4. Ratings are out of 5. If the user says something "
+        "vague like \"best rated\" or \"highly rated\" with NO number, leave "
+        "min_rating as null — do not invent a threshold. "
+        "\n\n"
         "recipient_age is the age of whoever the product is FOR, not "
         "necessarily the person writing the message (e.g. a gift for a "
         "child). order_id is the order identifier if the user stated one "
         "(e.g. \"O00000123\"), otherwise null — do not guess or invent one. "
-        "Only include color/size/budget/age/order_id values explicitly stated "
-        "or clearly implied — use null when unsure. "
+        "Only include color/size/budget/rating/age/order_id values explicitly "
+        "stated or clearly implied — use null when unsure. "
         "Respond with ONLY the JSON object, no other text."
     )
 
@@ -367,13 +395,14 @@ def apply_deterministic_filters(
     enriched_candidates: list[dict],
     max_budget: Optional[float] = None,
     min_budget: Optional[float] = None,
+    min_rating: Optional[float] = None,
     color: Optional[str] = None,
     size: Optional[str] = None,
 ) -> tuple[list[dict], dict]:
     """Filter already-enriched candidates (must have "in_stock", "base_price",
-    "variants" keys — i.e. already merged with get_product_details_bulk's
-    output) by stock, budget, and color/size — all deterministic, no LLM
-    judgment involved.
+    "rating_avg", "variants" keys — i.e. already merged with
+    get_product_details_bulk's output) by stock, budget, rating, and
+    color/size — all deterministic, no LLM judgment involved.
 
     NOTE: no top-N slicing happens here (removed for now) — returns the FULL
     filtered set. Caller is responsible for any limiting, and match_info is
@@ -384,6 +413,10 @@ def apply_deterministic_filters(
         enriched_candidates: candidates already merged with live product
             details (base_price, in_stock, variants, etc.).
         max_budget, min_budget: hard price constraints, if stated.
+        min_rating: hard rating threshold, if stated (e.g. "rating higher
+            than 4"). A product with rating_avg=0.0 (no reviews yet) is
+            correctly excluded by any positive threshold — 0.0 genuinely
+            isn't >= 4, no special-casing needed.
         color, size: if stated, only keep candidates with an ACTUAL
             IN-STOCK VARIANT matching what was asked (not just "has this
             color somewhere in its variant list" — must be the SAME variant
@@ -423,6 +456,11 @@ def apply_deterministic_filters(
         in_stock_only = [
             c for c in in_stock_only
             if c["base_price"] is not None and c["base_price"] >= min_budget
+        ]
+    if min_rating is not None:
+        in_stock_only = [
+            c for c in in_stock_only
+            if c["rating_avg"] is not None and c["rating_avg"] >= min_rating
         ]
 
     def _match_flags(c: dict) -> tuple[bool, bool, bool]:
@@ -508,27 +546,58 @@ def build_chat_fn(collection):
 
         intent = extract_user_intent(message, history, known_products=known_products)
         print(f"[chat_fn] intent={intent}")
+        debug_lines = [
+            "Groq call: extract_user_intent",
+            f"  Input: message={message!r}",
+            f"  Output: {intent}",
+        ]
+
+        def _debug_wrap(response_text: str) -> str:
+            styled_lines = []
+            for line in debug_lines:
+                if ":" in line:
+                    key, _, rest = line.partition(":")
+                    styled_lines.append(f'<b style="color:#2563eb">{key}:</b>{rest}')
+                else:
+                    styled_lines.append(line)  # blank separator lines, kept as-is
+            debug_html = (
+                "\n\n<details><summary>Debug info</summary>\n\n<pre>"
+                + "\n".join(styled_lines) + "</pre>\n</details>"
+            )
+            return response_text + debug_html
 
         # --- order_status: order HISTORY (no login, so email identifies customer) ---
         if intent.intent == "order_status" and intent.wants_order_history:
             if not intent.customer_email:
-                return "Sure — what's the email on your account?", known_products
+                return _debug_wrap("Sure — what's the email on your account?"), known_products
 
             customer = get_customer_by_email.invoke({"email": intent.customer_email})
+            debug_lines.append("")
+            debug_lines.append("Tool: get_customer_by_email")
+            debug_lines.append(f"  Input: email={intent.customer_email!r}")
+            debug_lines.append(f"  Output: {customer}")
             if "error" in customer:
-                return f"I couldn't find an account with email {intent.customer_email}.", known_products
+                return _debug_wrap(f"I couldn't find an account with email {intent.customer_email}."), known_products
 
             limit = intent.order_history_limit or 5  # deterministic default for "a few" — never guessed by the LLM
             orders = get_recent_orders.invoke({"customer_id": customer["customer_id"], "limit": limit})
+            debug_lines.append("")
+            debug_lines.append("Tool: get_recent_orders")
+            debug_lines.append(f"  Input: customer_id={customer['customer_id']!r}, limit={limit}")
+            debug_lines.append(f"  Output: {orders}")
 
             if not orders:
-                return f"No orders found for {intent.customer_email}.", known_products
+                return _debug_wrap(f"No orders found for {intent.customer_email}."), known_products
 
             # Singular ("my last order") -> full detail via track_order.
             # Plural -> lighter summary list, not full item-by-item detail
             # for every order (too verbose for e.g. "my last 5 orders").
             if limit == 1:
                 full = track_order.invoke({"order_id": orders[0]["order_id"]})
+                debug_lines.append("")
+                debug_lines.append("Tool: track_order")
+                debug_lines.append(f"  Input: order_id={orders[0]['order_id']!r}")
+                debug_lines.append(f"  Output: {full}")
                 customer_part = f" for {full['customer_name']}" if full.get("customer_name") else ""
                 parts = [f"Your last order, {full['order_id']}{customer_part}: {full['order_status']}."]
                 if full.get("tracking_status"):
@@ -537,7 +606,7 @@ def build_chat_fn(collection):
                     parts.append(f"Delivered on {full['delivered_date']}.")
                 elif full.get("expected_delivery_date"):
                     parts.append(f"Expected delivery: {full['expected_delivery_date']}.")
-                return " ".join(parts), known_products
+                return _debug_wrap(" ".join(parts)), known_products
 
             def _format_order(o):
                 # order_date comes as "YYYY-MM-DD HH:MM:SS" — the time
@@ -547,17 +616,21 @@ def build_chat_fn(collection):
                 return f"- {o['order_id']} ({date_only}): {o['order_status']} — ${o['total_amount']}"
 
             order_lines = "\n".join(_format_order(o) for o in orders)
-            return f"Your last {len(orders)} orders:\n{order_lines}", known_products
+            return _debug_wrap(f"Your last {len(orders)} orders:\n{order_lines}"), known_products
 
         # --- order_status: invoke track_order if order_id known, else ask ---
         if intent.intent == "order_status":
             if not intent.order_id:
-                return "Sure — what's your order ID? (e.g. O00000123)", known_products
+                return _debug_wrap("Sure — what's your order ID? (e.g. O00000123)"), known_products
 
             result = track_order.invoke({"order_id": intent.order_id})
+            debug_lines.append("")
+            debug_lines.append("Tool: track_order")
+            debug_lines.append(f"  Input: order_id={intent.order_id!r}")
+            debug_lines.append(f"  Output: {result}")
 
             if "error" in result:
-                return f"I couldn't find an order with ID {intent.order_id}.", known_products
+                return _debug_wrap(f"I couldn't find an order with ID {intent.order_id}."), known_products
 
             customer_part = f" ({result['customer_name']})" if result.get("customer_name") else ""
             lines = [f"**Order {result['order_id']}{customer_part}**"]
@@ -588,7 +661,7 @@ def build_chat_fn(collection):
                 lines.append("Items:")
                 lines.extend(_format_item(item) for item in items)
 
-            return "\n".join(lines), known_products
+            return _debug_wrap("\n".join(lines)), known_products
 
         # --- follow_up: live-check ONE specific already-shown product ---
         # By this point (after both defensive checks in extract_user_intent),
@@ -598,16 +671,24 @@ def build_chat_fn(collection):
         if intent.intent == "follow_up":
             title = known_products.get(intent.referenced_product_id, {}).get("title", "that product")
             details = get_product_details.invoke({"product_id": intent.referenced_product_id})
+            debug_lines.append("")
+            debug_lines.append("Tool: get_product_details")
+            debug_lines.append(f"  Input: product_id={intent.referenced_product_id!r}")
+            debug_lines.append(f"  Output: {details}")
 
             if "error" in details:
-                return f"I couldn't check {title} right now.", known_products
+                return _debug_wrap(f"I couldn't check {title} right now."), known_products
 
             # Reuse the EXACT SAME deterministic matching logic as new_search
             # — a single-item list input still correctly applies the
             # exact-variant-match + relaxation rules built earlier.
             filtered, match_info = apply_deterministic_filters(
-                [details], color=intent.color, size=intent.size,
+                [details], color=intent.color, size=intent.size, min_rating=intent.min_rating,
             )
+            debug_lines.append("")
+            debug_lines.append("Function: apply_deterministic_filters")
+            debug_lines.append(f"  Input: color={intent.color!r}, size={intent.size!r}, min_rating={intent.min_rating}")
+            debug_lines.append(f"  Output: filtered={[d['product_id'] for d in filtered]}, match_info={match_info}")
 
             asked_parts = [p for p in [intent.color, intent.size] if p]
             asked_desc = " and ".join(asked_parts)
@@ -627,7 +708,10 @@ def build_chat_fn(collection):
             size_exists_at_all = _exists_at_all("size_label", intent.size)
 
             if not filtered:
-                answer = f"{title} is currently out of stock."
+                if intent.min_rating is not None and details.get("rating_avg") is not None and details["rating_avg"] < intent.min_rating:
+                    answer = f"{title} is rated {details['rating_avg']}/5, which is below {intent.min_rating}."
+                else:
+                    answer = f"{title} is currently out of stock."
             elif match_info["exact_match_found"]:
                 answer = f"Yes, {title} is available" + (f" in {asked_desc}" if asked_desc else "") + "."
             elif intent.size and not match_info["size_matched"]:
@@ -645,12 +729,16 @@ def build_chat_fn(collection):
             else:
                 answer = f"{title} is in stock."
 
-            return answer, known_products
+            return _debug_wrap(answer), known_products
 
         # --- new_search (covers new requests + refinements): RAG + narration ---
         candidates = build_candidate_block(
             intent.search_query, collection, customer_age=intent.recipient_age
         )
+        debug_lines.append("")
+        debug_lines.append("Chroma search: build_candidate_block")
+        debug_lines.append(f"  Input: search_query={intent.search_query!r}, customer_age={intent.recipient_age}")
+        debug_lines.append(f"  Output: {[(c['product_id'], c['title']) for c in candidates]}")
 
         # Deterministic stock-check — NOT an LLM/tool-calling decision, since
         # "never recommend an out-of-stock item" has no exceptions. Runs on
@@ -663,16 +751,23 @@ def build_chat_fn(collection):
         # i.e. up to 24 sequential round-trips for top_k=8) — the per-
         # candidate loop was the main cause of ~15s response times in testing.
         product_ids = [c["product_id"] for c in candidates]
-        details_by_id = get_product_details_bulk(product_ids)
+        details_by_id = get_product_details_bulk.invoke({"product_ids": product_ids})
         print(f"[chat_fn] get_product_details_bulk called for {len(product_ids)} product_ids: {product_ids}")
+        debug_lines.append("")
+        debug_lines.append("Tool: get_product_details_bulk (Supabase)")
+        debug_lines.append(f"  Input: product_ids={product_ids}")
+        debug_lines.append("  Output:")
         for pid, d in details_by_id.items():
-            print(
-                f"  {pid}: base_price={d['base_price']}, in_stock={d['in_stock']}, "
+            line = (
+                f"{pid}: base_price={d['base_price']}, in_stock={d['in_stock']}, "
                 f"variants={[(v['size_label'], v['color_name'], v['available_qty']) for v in d['variants']]}"
             )
+            print(f"  {line}")
+            debug_lines.append(f"    {line}")
         missing = set(product_ids) - set(details_by_id.keys())
         if missing:
             print(f"  (not found in Supabase, skipped: {missing})")
+            debug_lines.append(f"    (not found in Supabase, skipped: {missing})")
 
         enriched = [
             {**c, **details_by_id[c["product_id"]]}
@@ -689,15 +784,25 @@ def build_chat_fn(collection):
         # NOTE: top-3 limiting REMOVED for now — top_picks is currently the
         # FULL filtered set, however many candidates that is. Revisit adding
         # a limit back later.
+        filter_input = {
+            "max_budget": intent.max_budget, "min_budget": intent.min_budget,
+            "min_rating": intent.min_rating, "color": intent.color, "size": intent.size,
+        }
         top_picks, match_info = apply_deterministic_filters(
             enriched,
             max_budget=intent.max_budget,
             min_budget=intent.min_budget,
+            min_rating=intent.min_rating,
             color=intent.color,
             size=intent.size,
         )
         print(f"[chat_fn] apply_deterministic_filters -> match_info={match_info}")
         print(f"[chat_fn] top_picks: {[(c['product_id'], c['title']) for c in top_picks]}")
+        debug_lines.append("")
+        debug_lines.append("Function: apply_deterministic_filters")
+        debug_lines.append(f"  Input: {filter_input}")
+        debug_lines.append(f"  Output: match_info={match_info}")
+        debug_lines.append(f"          top_picks={[(c['product_id'], c['title']) for c in top_picks]}")
 
         # Deterministic mismatch note — built in Python, not left to the LLM
         # to remember to mention. Prepended directly to the final answer
@@ -730,16 +835,17 @@ def build_chat_fn(collection):
         if not top_picks and not mismatch_parts:
             # Only reached if NOTHING more specific was already found above
             # (e.g. size hard-fail already produced its own message) — this
-            # is purely a fallback for when budget alone is why nothing
-            # survived, not a blanket overwrite of a better reason.
-            if intent.max_budget is not None or intent.min_budget is not None:
-                budget_desc = " and ".join(
+            # is purely a fallback for when budget/rating alone is why
+            # nothing survived, not a blanket overwrite of a better reason.
+            if intent.max_budget is not None or intent.min_budget is not None or intent.min_rating is not None:
+                constraint_desc = " and ".join(
                     p for p in [
                         f"under ${intent.max_budget}" if intent.max_budget is not None else None,
                         f"over ${intent.min_budget}" if intent.min_budget is not None else None,
+                        f"rated {intent.min_rating}+" if intent.min_rating is not None else None,
                     ] if p
                 )
-                mismatch_parts = [f"Nothing currently in stock is {budget_desc}."]
+                mismatch_parts = [f"Nothing currently in stock is {constraint_desc}."]
         mismatch_note = (" ".join(mismatch_parts) + "\n\n") if mismatch_parts else ""
 
         # Fully deterministic short-circuit — if NOTHING survived all the
@@ -751,7 +857,7 @@ def build_chat_fn(collection):
                 "I couldn't find anything in stock matching that. "
                 "Want me to widen the search?"
             )
-            return fallback_msg, known_products
+            return _debug_wrap(fallback_msg), known_products
 
         def _size_sort_key(size_label: str):
             """Sort numeric sizes (e.g. '9', '10') numerically, so '10'
@@ -764,7 +870,7 @@ def build_chat_fn(collection):
                 return (1, str(size_label))
 
         def _format_candidate(c: dict) -> str:
-            rating_text = f"{c['rating_avg']}/5" if c["rating_avg"] is not None else "not rated yet"
+            rating_text = f"{c['rating_avg']}/5" if c["rating_avg"] else "not rated yet"
 
             # Build size -> [colors] instead of one flat color list — a flat
             # list loses the association (e.g. can't tell "size 9 only
@@ -818,6 +924,8 @@ def build_chat_fn(collection):
             requested_attrs.append(f"max budget: ${intent.max_budget}")
         if intent.min_budget is not None:
             requested_attrs.append(f"min budget: ${intent.min_budget}")
+        if intent.min_rating is not None:
+            requested_attrs.append(f"min rating: {intent.min_rating}/5")
         requested_attrs_text = (
             f"User specifically asked about: {', '.join(requested_attrs)}\n\n"
             if requested_attrs
@@ -845,7 +953,7 @@ def build_chat_fn(collection):
         completion = groq.chat.completions.create(
             model=GROQ_MODEL,
             messages=messages,
-            temperature=0.3,
+            temperature=0.1,
         )
 
         # Accumulate every candidate ACTUALLY SHOWN, keyed by product_id —
@@ -872,9 +980,12 @@ def build_chat_fn(collection):
                 "sizes_shown": sorted(
                     {v["size_label"] for v in c["variants"] if v["in_stock"] and v["size_label"]}
                 ),
+                "colors_shown": sorted(
+                    {v["color_name"] for v in c["variants"] if v["in_stock"] and v["color_name"]}
+                ),
             }
 
-        return mismatch_note + completion.choices[0].message.content, known_products
+        return _debug_wrap(mismatch_note + completion.choices[0].message.content), known_products
     return chat_fn
 
 
@@ -911,10 +1022,10 @@ def launch(persist_path: str | None = ".chroma", share: bool = False, debug: boo
             "are not verified in this build."
         ),
         examples=[
-            ["Show me smart plugs to control my home appliances remotely.", {}],
-            ["I need hiking boots for a cold weather trip.", {}],
-            ["Sleeping bag for camping under $150.", {}],
-            ["What fitness gear do you have under $100?", {}],
+            ["Show me smart plugs to control my home appliances remotely.", None],
+            ["I need hiking boots for a cold weather trip.", None],
+            ["Sleeping bag for camping under $150.", None],
+            ["What fitness gear do you have under $100?", None],
         ],
     )
 

@@ -157,11 +157,12 @@ def get_product_details(product_id: str) -> dict:
 
 # ---------------------------------------------------------------------------
 # Batched version — for enriching a whole candidate list, not one product.
-# Not @tool-decorated: this is an internal efficiency helper, not something
-# an LLM would ever choose to call (it wouldn't know the ideal batch of
-# product_ids to pass) — app.py's chat_fn calls it directly.
+# NOW @tool-decorated — previously an internal-only helper, always called
+# deterministically by app.py's chat_fn. Decorated in preparation for future
+# work moving more of this deterministic logic toward LLM-driven tool-calling.
 # ---------------------------------------------------------------------------
 
+@tool
 def get_product_details_bulk(product_ids: list[str]) -> dict[str, dict]:
     """Same data as get_product_details, for MANY products, in 3 TOTAL
     Supabase queries (not 3 per product).
