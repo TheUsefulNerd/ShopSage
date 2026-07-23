@@ -239,7 +239,7 @@ def _build_intent_prompt(known_products: dict) -> str:
         "min_rating (number|null), recipient_age (int|null), order_id (string|null), "
         "wants_order_history (bool), customer_email (string|null), order_history_limit (int|null), "
         "referenced_product_id (string|null). "
-        "search_query must be standalone and self-contained. "
+        "search_query must be standalone and self-contained. Resolve any pronouns or vague references (like 'it', 'one', 'these') using the conversation history (e.g. 'can I get a black one' -> 'black hiking boots'). "
         "For follow_up, referenced_product_id must be a REAL id from the list above. "
         "If the user is asking a conversational question not related to shopping (e.g. 'who are you', 'what is my name'), use 'general_chat' intent. "
         "Respond with ONLY the JSON object."
