@@ -274,6 +274,9 @@ def extract_intent(message: str, history: list, known_products: dict) -> UserInt
     if intent.intent == "follow_up" and not intent.referenced_product_id:
         intent.intent = "new_search"
         intent.search_query = message
+    # Do not force general_chat into new_search if it lacks a referenced product
+    if intent.intent not in ["new_search", "follow_up", "order_status", "general_chat"]:
+        intent.intent = "new_search"
 
     return intent
 
