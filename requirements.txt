@@ -1,19 +1,19 @@
 # ShopSage Requirements — Guaranteed Working Versions
 
 # --- Week 1 & 2: RAG, UI, and Databases ---
-langchain==0.3.25
-langchain-community==0.3.23
-langchain-groq==0.3.2
-groq==1.4.0
-streamlit==1.37.0
-pandas==2.2.2
-supabase==2.4.6
-python-dotenv==1.2.2
+langchain
+langchain-community
+langchain-groq
+groq
+streamlit>=1.37.0
+pandas
+supabase
+python-dotenv
 
 # --- Vector Store & Embeddings ---
-qdrant-client==1.18.0
-fastembed==0.8.0
-onnxruntime==1.17.0
+qdrant-client>=1.10.1
+fastembed>=0.3.3
+onnxruntime>=1.17.0
 
 # --- (Optional) Standalone API server ---
 fastapi==0.111.0
