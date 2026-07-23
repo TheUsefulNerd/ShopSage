@@ -14,20 +14,16 @@ supabase==2.31.0
 python-dotenv==1.2.2
 
 # Vector store
-chromadb==1.5.9
-# qdrant-client==1.18.0         # alternative — uncomment if team switches
+qdrant-client==1.10.1         # Week 2 Qdrant migration
+# chromadb==1.5.9
 
-# Embedding model
-# NOTE: sentence-transformers is intentionally unpinned — pinning to 4.x pulls
-# transformers which requires huggingface-hub<1.0, conflicting with gradio 6.x
-# which needs huggingface-hub>=1.2.0. Let pip resolve a compatible set.
-sentence-transformers
-#Had to add HuggingFace as sentence-transformer was breaking
-langchain-huggingface==1.2.2
-huggingface-hub==1.20.1
+# Embedding model (Week 2: FastEmbed replaces HuggingFace/sentence-transformers)
+fastembed==0.3.3
+onnxruntime==1.17.0
 
 # --- Week 2: Tools, MCP & Memory ---
-# mcp==1.28.1
+streamlit==1.42.0
+rank-bm25==0.2.2
 
 # --- Week 3: Guardrails & Caching ---
 # redis==8.0.1
