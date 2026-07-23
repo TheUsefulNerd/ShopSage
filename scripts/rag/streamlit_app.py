@@ -234,14 +234,14 @@ def _build_intent_prompt(known_products: dict) -> str:
 
     return (
         f"{known_section}"
-        "Extract JSON with fields: search_query (string), intent (new_search/follow_up/order_status), "
+        "Extract JSON with fields: search_query (string), intent (new_search/follow_up/order_status/general_chat), "
         "color (string|null), size (string|null), min_budget (number|null), max_budget (number|null), "
         "min_rating (number|null), recipient_age (int|null), order_id (string|null), "
         "wants_order_history (bool), customer_email (string|null), order_history_limit (int|null), "
         "referenced_product_id (string|null). "
         "search_query must be standalone and self-contained. "
         "For follow_up, referenced_product_id must be a REAL id from the list above. "
-        "When genuinely unsure between follow_up and new_search, prefer new_search. "
+        "If the user is asking a conversational question not related to shopping (e.g. 'who are you', 'what is my name'), use 'general_chat' intent. "
         "Respond with ONLY the JSON object."
     )
 
@@ -457,7 +457,9 @@ def process_message(user_message: str) -> str:
         return "\n".join(lines)
 
     # --- Candidate Generation ---
-    if intent.intent == "follow_up" and intent.referenced_product_id:
+    if intent.intent == "general_chat":
+        candidates = []
+    elif intent.intent == "follow_up" and intent.referenced_product_id:
         candidates = [{"product_id": intent.referenced_product_id}]
     else:
         # RAG Search
@@ -521,7 +523,11 @@ def process_message(user_message: str) -> str:
         requested_attrs.append(f"min budget: ${intent.min_budget}")
     if intent.min_rating is not None:
         requested_attrs.append(f"min rating: {intent.min_rating}/5")
-    attrs_text = f"User specifically asked about: {', '.join(requested_attrs)}\n\n" if requested_attrs else ""
+    if intent.intent == "general_chat":
+        attrs_text = "The user is engaging in general conversation. Reply naturally to their query based on the conversation history."
+        candidate_block = ""
+    else:
+        attrs_text = f"User specifically asked about: {', '.join(requested_attrs)}\n\n" if requested_attrs else ""
 
     groq_messages = (
         [{"role": "system", "content": SYSTEM_PROMPT}]
@@ -529,8 +535,11 @@ def process_message(user_message: str) -> str:
         + [{"role": "user", "content": f"User query: {user_message}\n\n{attrs_text}Live product data:\n{candidate_block}"}]
     )
     groq = _get_groq_client()
-    completion = groq.chat.completions.create(model=GROQ_MODEL, messages=groq_messages, temperature=0.1)
+    completion = groq.chat.completions.create(model=GROQ_MODEL, messages=groq_messages, temperature=0.5 if intent.intent == "general_chat" else 0.1)
     answer = completion.choices[0].message.content
+
+    if intent.intent == "general_chat":
+        return answer
 
     # Update known_products for follow-up resolution
     for c in top_picks:
