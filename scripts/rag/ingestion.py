@@ -7,18 +7,26 @@ What this module does:
   2. Loads variant colors from product_variants (paginated), keyed by product_id.
   3. Flattens nested brand/category dicts into a flat DataFrame.
   4. Builds a chunk_text string per product (title, brand, category, colors,
-     description). Price is intentionally NOT embedded — it's a mutable field
-     that would require re-embedding on every price change. It lives in Chroma
-     metadata instead, where get_shortlist reads it for deterministic filtering.
+     description). base_price/rating_avg are intentionally NOT embedded or
+     stored in Chroma metadata — they change independently of the catalog
+     (pricing updates, new reviews) and would go stale until the next
+     --force-rebuild otherwise. A live tool call (get_product_details, in
+     tools.py) fetches them fresh instead, called on final candidates only.
   5. Encodes all chunks with all-MiniLM-L6-v2 (normalize_embeddings=True) and
      upserts them into a Chroma collection using cosine distance.
 
+If persist_path is given and a populated collection already exists there,
+build_collection() reuses it instead of re-pulling from Supabase and
+re-embedding everything — pass force_rebuild=True (or --force-rebuild on the
+CLI) to rebuild anyway, e.g. after catalog data has changed.
+
 Usage:
     from scripts.rag.ingestion import build_collection
-    collection, products_df = build_collection()
+    collection, products_df = build_collection(persist_path=".chroma")
 
-Or run standalone (rebuilds the whole index from scratch):
-    python -m scripts.rag.ingestion
+Or run standalone:
+    python -m scripts.rag.ingestion --persist-path .chroma
+    python -m scripts.rag.ingestion --persist-path .chroma --force-rebuild
 """
 
 from __future__ import annotations
@@ -29,8 +37,8 @@ from typing import Optional
 
 import chromadb
 import pandas as pd
-from sentence_transformers import SentenceTransformer
 from supabase import create_client, Client
+from scripts.rag.retrieval import _get_embedder
 
 try:
     from dotenv import load_dotenv
@@ -75,7 +83,7 @@ def load_products(supabase: Client, page_size: int = 1000) -> list[dict]:
             supabase.table("products")
             .select(
                 "product_id, title, description, base_price, rating_avg, "
-                "review_count, age_restricted, min_age, color_family, "
+                "review_count, age_restricted, min_age, color_family, material, "
                 "brands(brand_name, tier), "
                 "categories(category_name, is_age_sensitive)"
             )
@@ -98,7 +106,7 @@ def load_variant_colors(supabase: Client, page_size: int = 1000) -> dict[str, li
     color_family on products is the BASE color only. Joining product_variants
     lets queries like "green yoga mat" surface a product whose base color is
     black but has a green variant — retrieval matching only, NOT a claim that
-    the item is currently in stock in green (that needs a Week 2 tool call).
+    the item is currently in stock in green (that needs a live tool call).
     """
     all_rows: list[dict] = []
     start = 0
@@ -149,6 +157,7 @@ def flatten_product(row: dict, variant_colors: dict[str, list[str]]) -> dict:
         "age_restricted": row["age_restricted"],
         "min_age": row["min_age"],
         "color_family": row["color_family"],
+        "material": row.get("material"),
         "brand_name": brand.get("brand_name"),
         "brand_tier": brand.get("tier"),
         "category_name": category.get("category_name"),
@@ -184,19 +193,28 @@ def build_chunk_text(row: pd.Series) -> str:
     """Build the text string that gets embedded for a product.
 
     Design decisions:
-    - base_price is deliberately excluded — it's mutable and embedding it
-      would require re-embedding every time a price changes. It lives in
-      Chroma metadata and is used for deterministic filtering in get_shortlist.
+    - base_price/rating_avg are deliberately excluded — they change
+      independently of the catalog and would go stale until the next
+      --force-rebuild. They're fetched live instead (get_product_details,
+      tools.py), never baked into the embedded text or Chroma metadata.
     - variant_colors are included so semantic queries like "green yoga mat"
       can surface products that don't have green as their base color_family.
+      This is retrieval-matching only — it never reaches the LLM as a claim
+      (see app.py's chat_fn, which builds the candidate_block text that's
+      actually shown to the LLM from live-fetched data, not this).
+    - material is included for the same retrieval-matching reason as colors —
+      lets queries like "leather boots" or "cotton shirt" match on material,
+      even though material is essentially static (unlike price/stock) so
+      there's no live-fetch staleness concern here either way.
     """
     colors = row["variant_colors"] or (
         [row["color_family"]] if row["color_family"] else []
     )
     color_text = f"Available colors: {', '.join(colors)}. " if colors else ""
+    material_text = f"Material: {row['material']}. " if row.get("material") else ""
     return (
         f"{row['title']} by {row['brand_name']} ({row['brand_tier']} tier). "
-        f"Category: {row['category_name']}. {color_text}"
+        f"Category: {row['category_name']}. {color_text}{material_text}"
         f"{row['description']}"
     )
 
@@ -205,8 +223,9 @@ def build_collection(
     supabase: Optional[Client] = None,
     chroma_client: Optional[chromadb.Client] = None,
     persist_path: Optional[str] = None,
-) -> tuple[chromadb.Collection, pd.DataFrame]:
-    """Build (or rebuild) the Chroma vector store from Supabase data.
+    force_rebuild: bool = False,
+) -> tuple[chromadb.Collection, Optional[pd.DataFrame]]:
+    """Build (or load) the Chroma vector store.
 
     Args:
         supabase: Optional pre-built Supabase client (uses env vars if None).
@@ -215,15 +234,14 @@ def build_collection(
             - Falls back to in-memory Client (resets on restart) otherwise.
         persist_path: Path for a PersistentClient (e.g. ".chroma"). Ignored
             if chroma_client is supplied directly.
+        force_rebuild: If True, always re-pull from Supabase and re-embed,
+            even if a populated collection already exists at persist_path.
+            Use this after catalog data has actually changed.
 
     Returns:
-        (collection, products_df) — the Chroma collection and the DataFrame
-        used to build it (useful for debugging / further analysis).
+        (collection, products_df) — products_df is None when an existing
+        collection was reused (no DataFrame was built in that case).
     """
-    products_df = load_products_df(supabase)
-    products_df["chunk_text"] = products_df.apply(build_chunk_text, axis=1)
-
-    # Chroma client setup
     if chroma_client is None:
         if persist_path:
             chroma_client = chromadb.PersistentClient(path=persist_path)
@@ -231,6 +249,27 @@ def build_collection(
         else:
             chroma_client = chromadb.Client()
             print("Using in-memory Chroma (index resets on restart).")
+
+    # Skip the expensive rebuild (Supabase pull + re-embedding every product)
+    # if a populated collection already exists — this is what actually makes
+    # persist_path worth using. Without this check, build_collection()
+    # unconditionally deleted and rebuilt the collection every single call,
+    # even against a persistent path, defeating the point of persisting it.
+    if not force_rebuild:
+        try:
+            existing = chroma_client.get_collection(COLLECTION_NAME)
+            if existing.count() > 0:
+                print(
+                    f"Found existing collection '{COLLECTION_NAME}' with "
+                    f"{existing.count()} items — reusing it, skipping rebuild. "
+                    f"Pass force_rebuild=True to rebuild anyway."
+                )
+                return existing, None
+        except Exception:
+            pass  # collection doesn't exist yet — fall through and build it
+
+    products_df = load_products_df(supabase)
+    products_df["chunk_text"] = products_df.apply(build_chunk_text, axis=1)
 
     # Drop and recreate so re-running doesn't hit duplicate-collection errors
     try:
@@ -245,22 +284,26 @@ def build_collection(
         metadata={"hnsw:space": "cosine"},
     )
 
-    embedder = SentenceTransformer(EMBED_MODEL)
+    embedder = _get_embedder()
+
     total = len(products_df)
     for i in range(0, total, EMBED_BATCH_SIZE):
         batch = products_df.iloc[i : i + EMBED_BATCH_SIZE]
-        embeddings = embedder.encode(
-            batch["chunk_text"].tolist(), normalize_embeddings=True
-        ).tolist()
+        embeddings = embedder.embed_documents(batch["chunk_text"].tolist())
         collection.add(
             ids=batch["product_id"].tolist(),
             embeddings=embeddings,
             documents=batch["chunk_text"].tolist(),
             metadatas=batch[
                 [
-                    "product_id", "title", "base_price", "brand_name",
+                    # base_price and rating_avg deliberately excluded — they
+                    # change independently of the catalog (pricing updates,
+                    # new reviews) and would go stale until the next
+                    # --force-rebuild otherwise. Fetched live instead, via
+                    # get_product_details (tools.py), on final candidates only.
+                    "product_id", "title", "brand_name",
                     "category_name", "color_family", "age_restricted",
-                    "min_age", "is_age_sensitive", "rating_avg",
+                    "min_age", "is_age_sensitive",
                 ]
             ].to_dict(orient="records"),
         )
@@ -280,12 +323,21 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Build the ShopSage Chroma index from Supabase.")
     parser.add_argument(
         "--persist-path",
-        default=None,
-        help="Directory for a persistent Chroma store (e.g. .chroma). "
-             "Omit for an in-memory store (prototype only).",
+        default=".chroma",
+        help="Directory for a persistent Chroma store. Defaults to .chroma. "
+             "Automatically reuses an existing populated index there if one "
+             "exists — pass --force-rebuild to rebuild anyway.",
+    )
+    parser.add_argument(
+        "--force-rebuild",
+        action="store_true",
+        help="Rebuild even if a populated collection already exists at --persist-path.",
     )
     args = parser.parse_args()
 
-    collection, df = build_collection(persist_path=args.persist_path)
-    print(f"\nproducts_df shape: {df.shape}")
-    print(df[["product_id", "title", "category_name", "base_price"]].head())
+    collection, df = build_collection(persist_path=args.persist_path, force_rebuild=args.force_rebuild)
+    if df is not None:
+        print(f"\nproducts_df shape: {df.shape}")
+        print(df[["product_id", "title", "category_name", "base_price"]].head())
+    else:
+        print(f"\nReused existing collection — {collection.count()} items, no DataFrame built.")
